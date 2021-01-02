@@ -1,6 +1,6 @@
 import json
 
-from mymazda.controller import Controller
+from pymazda.controller import Controller
 
 
 class Client:

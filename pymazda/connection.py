@@ -4,7 +4,7 @@ import hashlib
 import base64
 import json
 from urllib.parse import urlencode
-from mymazda.crypto_utils import encryptAES128CBCBufferToBase64String, decryptAES128CBCBufferToString, encryptRSAECBPKCS1Padding
+from pymazda.crypto_utils import encryptAES128CBCBufferToBase64String, decryptAES128CBCBufferToString, encryptRSAECBPKCS1Padding
 
 APP_CODE = "202007270941270111799"
 IV = "0102030405060708"

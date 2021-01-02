@@ -1,4 +1,4 @@
-from mymazda.connection import Connection
+from pymazda.connection import Connection
 
 
 class Controller:
