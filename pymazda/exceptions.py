@@ -14,6 +14,22 @@ class MazdaAccountLockedException(Exception):
         super(MazdaAccountLockedException, self).__init__(status)
         self.status = status
 
+class MazdaTokenExpiredException(Exception):
+    """Raised when server reports that the access token has expired"""
+    
+    def __init__(self, status):
+        """Initialize exception"""
+        super(MazdaTokenExpiredException, self).__init__(status)
+        self.status = status
+
+class MazdaAPIEncryptionException(Exception):
+    """Raised when server reports that the request is not encrypted properly"""
+    
+    def __init__(self, status):
+        """Initialize exception"""
+        super(MazdaAPIEncryptionException, self).__init__(status)
+        self.status = status
+
 class MazdaException(Exception):
     """Raised when an unknown error occurs during API interaction"""
 

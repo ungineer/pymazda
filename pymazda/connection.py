@@ -5,7 +5,7 @@ import base64
 import json
 from urllib.parse import urlencode
 from pymazda.crypto_utils import encryptAES128CBCBufferToBase64String, decryptAES128CBCBufferToString, encryptRSAECBPKCS1Padding
-from pymazda.exceptions import MazdaAuthenticationException, MazdaAccountLockedException, MazdaException
+from pymazda.exceptions import MazdaException, MazdaAPIEncryptionException, MazdaAuthenticationException, MazdaAccountLockedException, MazdaTokenExpiredException
 
 
 APP_CODE = "202007270941270111799"
@@ -108,6 +108,16 @@ class Connection:
         if needsAuth:
             await self.__ensureTokenIsValid()
 
+        try:
+            return await self.__sendApiRequest(self, method, uri, queryDict, bodyDict, needsKeys, needsAuth)
+        except (MazdaAPIEncryptionException):
+            await self.__retrieveKeys()
+            return await self.__sendApiRequest(self, method, uri, queryDict, bodyDict, needsKeys, needsAuth)
+        except (MazdaTokenExpiredException):
+            await self.login()
+            return await self.__sendApiRequest(self, method, uri, queryDict, bodyDict, needsKeys, needsAuth)
+
+    async def __sendApiRequest(self, method, uri, queryDict={}, bodyDict={}, needsKeys=True, needsAuth=False):
         timestamp = self.__getTimestampStrMs()
 
         originalQueryStr = ""
@@ -156,9 +166,9 @@ class Connection:
             else:
                 return self.__decryptPayloadUsingKey(responseJson["payload"])
         elif responseJson["errorCode"] == 600001:
-            raise MazdaException("Server rejected encrypted request")
+            raise MazdaAPIEncryptionException("Server rejected encrypted request")
         elif responseJson["errorCode"] == 600002:
-            raise MazdaException("Token expired")
+            raise MazdaTokenExpiredException("Token expired")
         else:
             raise MazdaException("Request failed for an unknown reason")
 
