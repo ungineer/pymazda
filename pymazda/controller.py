@@ -5,6 +5,9 @@ class Controller:
     def __init__(self, email, password, websession=None):
         self.connection = Connection(email, password, websession)
 
+    async def login(self):
+        await self.connection.login()
+    
     async def getTac(self):
         return await self.connection.apiRequest("GET", "content/getTac/v4", needsKeys=True, needsAuth=False)
 

@@ -166,7 +166,7 @@ class Connection:
 
     async def __ensureTokenIsValid(self):
         if self.accessToken is None or self.accessTokenExpirationTs is None or self.accessTokenExpirationTs <= time.time():
-            await self.__login()
+            await self.login()
 
     async def __retrieveKeys(self):
         response = await self.apiRequest("POST", "service/checkVersion", needsKeys=False, needsAuth=False)
@@ -174,7 +174,7 @@ class Connection:
         self.encKey = response["encKey"]
         self.signKey = response["signKey"]
 
-    async def __login(self):
+    async def login(self):
         encryptionKeyResponse = await self._session.request("GET", "https://ptznwbh8.mazda.com/appapi/v1/system/encryptionKey?appId=MazdaApp&locale=en-US&deviceId=ACCT1195961580&sdkVersion=11.2.0000.002", headers={"User-Agent": "MyMazda/7.0.1 (Google Pixel 3a; Android 11)"})
 
         encryptionKeyResponseJson = await encryptionKeyResponse.json()

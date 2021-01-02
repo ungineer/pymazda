@@ -7,6 +7,9 @@ class Client:
     def __init__(self, email, password, websession=None):
         self.controller = Controller(email, password, websession)
 
+    async def validateCredentials(self):
+        await self.controller.login()
+    
     async def getVehicles(self):
         vecBaseInfos = await self.controller.getVecBaseInfos()
 
