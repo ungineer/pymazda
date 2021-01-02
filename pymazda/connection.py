@@ -5,6 +5,8 @@ import base64
 import json
 from urllib.parse import urlencode
 from pymazda.crypto_utils import encryptAES128CBCBufferToBase64String, decryptAES128CBCBufferToString, encryptRSAECBPKCS1Padding
+from pymazda.exceptions import MazdaAuthenticationException, MazdaAccountLockedException, MazdaException
+
 
 APP_CODE = "202007270941270111799"
 IV = "0102030405060708"
@@ -66,7 +68,7 @@ class Connection:
         if timestamp is None or timestamp == "":
             return ""
         if self.signKey is None or self.signKey == "":
-            raise Exception("Missing sign key")
+            raise MazdaException("Missing sign key")
 
         return self.__getPayloadSign(self.__encryptPayloadUsingKey(payload) + timestamp + timestamp[6:] + timestamp[3:], self.signKey)
 
@@ -75,7 +77,7 @@ class Connection:
 
     def __encryptPayloadUsingKey(self, payload):
         if self.encKey is None or self.encKey == "":
-            raise Exception("Missing enc key")
+            raise MazdaException("Missing encryption key")
         if payload is None or payload == "":
             return ""
 
@@ -89,7 +91,7 @@ class Connection:
 
     def __decryptPayloadUsingKey(self, payload):
         if self.encKey is None or self.encKey == "":
-            raise Exception("Missing enc key")
+            raise MazdaException("Missing encryption key")
 
         buf = base64.b64decode(payload)
         decrypted = decryptAES128CBCBufferToString(buf, self.encKey, IV)
@@ -154,11 +156,11 @@ class Connection:
             else:
                 return self.__decryptPayloadUsingKey(responseJson["payload"])
         elif responseJson["errorCode"] == 600001:
-            raise Exception("Server rejected encrypted request")
+            raise MazdaException("Server rejected encrypted request")
         elif responseJson["errorCode"] == 600002:
-            raise Exception("Token expired")
+            raise MazdaException("Token expired")
         else:
-            raise Exception("Request failed")
+            raise MazdaException("Request failed for an unknown reason")
 
     async def __ensureKeysPresent(self):
         if self.encKey is None or self.signKey is None:
@@ -199,10 +201,12 @@ class Connection:
 
         loginResponseJson = await loginResponse.json()
 
+        if loginResponseJson["status"] == "INVALID_CREDENTIAL":
+            raise MazdaAuthenticationException("Invalid email or password")
         if loginResponseJson["status"] == "USER_LOCKED":
-            raise Exception("Account has been locked")
+            raise MazdaAccountLockedException("Account has been locked")
         if loginResponseJson["status"] != "OK":
-            raise Exception("Login failed")
+            raise MazdaException("Login failed")
 
         self.accessToken = loginResponseJson["data"]["accessToken"]
         self.accessTokenExpirationTs = loginResponseJson["data"]["accessTokenExpirationTs"]

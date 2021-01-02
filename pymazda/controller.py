@@ -1,5 +1,5 @@
 from pymazda.connection import Connection
-
+from pymazda.exceptions import MazdaException
 
 class Controller:
     def __init__(self, email, password, websession=None):
@@ -29,7 +29,7 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/getVehicleStatus/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to get vehicle status")
+            raise MazdaException("Failed to get vehicle status")
 
         return response
 
@@ -44,7 +44,7 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/getHealthReport/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to get health report")
+            raise MazdaException("Failed to get health report")
 
         return response
 
@@ -57,7 +57,7 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/doorUnlock/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to unlock door")
+            raise MazdaException("Failed to unlock door")
 
         return response
 
@@ -70,7 +70,7 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/doorLock/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to lock door")
+            raise MazdaException("Failed to lock door")
 
         return response
 
@@ -83,7 +83,7 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/lightOn/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to turn light on")
+            raise MazdaException("Failed to turn light on")
 
         return response
 
@@ -96,7 +96,7 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/lightOff/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to turn light off")
+            raise MazdaException("Failed to turn light off")
 
         return response
 
@@ -109,7 +109,7 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/engineStart/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to start engine")
+            raise MazdaException("Failed to start engine")
 
         return response
 
@@ -122,6 +122,6 @@ class Controller:
         response = await self.connection.apiRequest("POST", "remoteServices/engineStop/v4", bodyDict=postBody, needsKeys=True, needsAuth=True)
 
         if response["resultCode"] != "200S00":
-            raise Exception("Failed to stop engine")
+            raise MazdaException("Failed to stop engine")
 
         return response
