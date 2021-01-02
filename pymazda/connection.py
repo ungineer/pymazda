@@ -109,13 +109,13 @@ class Connection:
             await self.__ensureTokenIsValid()
 
         try:
-            return await self.__sendApiRequest(self, method, uri, queryDict, bodyDict, needsKeys, needsAuth)
+            return await self.__sendApiRequest(method, uri, queryDict, bodyDict, needsKeys, needsAuth)
         except (MazdaAPIEncryptionException):
             await self.__retrieveKeys()
-            return await self.__sendApiRequest(self, method, uri, queryDict, bodyDict, needsKeys, needsAuth)
+            return await self.__sendApiRequest(method, uri, queryDict, bodyDict, needsKeys, needsAuth)
         except (MazdaTokenExpiredException):
             await self.login()
-            return await self.__sendApiRequest(self, method, uri, queryDict, bodyDict, needsKeys, needsAuth)
+            return await self.__sendApiRequest(method, uri, queryDict, bodyDict, needsKeys, needsAuth)
 
     async def __sendApiRequest(self, method, uri, queryDict={}, bodyDict={}, needsKeys=True, needsAuth=False):
         timestamp = self.__getTimestampStrMs()
