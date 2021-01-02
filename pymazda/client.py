@@ -4,8 +4,8 @@ from pymazda.controller import Controller
 
 
 class Client:
-    def __init__(self, email, password):
-        self.controller = Controller(email, password)
+    def __init__(self, email, password, websession=None):
+        self.controller = Controller(email, password, websession)
 
     async def getVehicles(self):
         vecBaseInfos = await self.controller.getVecBaseInfos()

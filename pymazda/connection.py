@@ -20,8 +20,8 @@ BASE_URL = "https://0cxo7m58.mazda.com/prod/"
 
 class Connection:
     """Main class for handling MyMazda API connection"""
-
-    def __init__(self, email, password):
+    
+    def __init__(self, email, password, websession=None):
         self.email = email
         self.password = password
 
@@ -31,7 +31,10 @@ class Connection:
         self.accessToken = None
         self.accessTokenExpirationTs = None
 
-        self._session = aiohttp.ClientSession()
+        if websession is None:
+            self._session = aiohttp.ClientSession()
+        else:
+            self._session = websession
 
     def __getTimestampStrMs(self):
         return str(int(round(time.time() * 1000)))
