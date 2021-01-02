@@ -13,19 +13,19 @@ async def test() -> None:
     client = pymazda.Client("myemail", "mypassword")
 
     # Get list of vehicles from the API
-    vehicles = await client.getVehicles()
+    vehicles = await client.get_vehicles()
 
     # Loop through the registered vehicles
     for vehicle in vehicles:
         # Get vehicle status
-        status = await client.getVehicleStatus(vehicle["id"])
+        status = await client.get_vehicle_status(vehicle["id"])
         print(status)
 
         # Turn on hazard lights
-        await client.turnHazardLightsOn(vehicle["id"])
+        await client.turn_on_hazard_lights(vehicle["id"])
 
         # Start engine
-        await client.startEngine(vehicle["id"])
+        await client.start_engine(vehicle["id"])
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

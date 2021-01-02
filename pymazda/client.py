@@ -7,96 +7,96 @@ class Client:
     def __init__(self, email, password, websession=None):
         self.controller = Controller(email, password, websession)
 
-    async def validateCredentials(self):
+    async def validate_credentials(self):
         await self.controller.login()
     
-    async def getVehicles(self):
-        vecBaseInfos = await self.controller.getVecBaseInfos()
+    async def get_vehicles(self):
+        vec_base_infos = await self.controller.get_vec_base_infos()
 
         vehicles = []
 
-        for vecBaseInfo in vecBaseInfos["vecBaseInfos"]:
-            otherVehInfo = json.loads(vecBaseInfo["Vehicle"]["vehicleInformation"])
+        for vecBaseInfo in vec_base_infos["vecBaseInfos"]:
+            other_veh_info = json.loads(vecBaseInfo["Vehicle"]["vehicleInformation"])
 
             vehicle = {
                 "vin": vecBaseInfo["vin"],
                 "id": vecBaseInfo["Vehicle"]["CvInformation"]["internalVin"],
-                "carlineCode": otherVehInfo["OtherInformation"]["carlineCode"],
-                "carlineName": otherVehInfo["OtherInformation"]["carlineName"],
-                "modelYear": otherVehInfo["OtherInformation"]["modelYear"],
-                "modelCode": otherVehInfo["OtherInformation"]["modelCode"],
-                "modelName": otherVehInfo["OtherInformation"]["modelName"],
-                "automaticTransmission": otherVehInfo["OtherInformation"]["transmissionType"] == "A",
-                "interiorColorCode": otherVehInfo["OtherInformation"]["interiorColorCode"],
-                "interiorColorName": otherVehInfo["OtherInformation"]["interiorColorName"],
-                "exteriorColorCode": otherVehInfo["OtherInformation"]["exteriorColorCode"],
-                "exteriorColorName": otherVehInfo["OtherInformation"]["exteriorColorName"],
+                "carlineCode": other_veh_info["OtherInformation"]["carlineCode"],
+                "carlineName": other_veh_info["OtherInformation"]["carlineName"],
+                "modelYear": other_veh_info["OtherInformation"]["modelYear"],
+                "modelCode": other_veh_info["OtherInformation"]["modelCode"],
+                "modelName": other_veh_info["OtherInformation"]["modelName"],
+                "automaticTransmission": other_veh_info["OtherInformation"]["transmissionType"] == "A",
+                "interiorColorCode": other_veh_info["OtherInformation"]["interiorColorCode"],
+                "interiorColorName": other_veh_info["OtherInformation"]["interiorColorName"],
+                "exteriorColorCode": other_veh_info["OtherInformation"]["exteriorColorCode"],
+                "exteriorColorName": other_veh_info["OtherInformation"]["exteriorColorName"],
             }
 
             vehicles.append(vehicle)
 
         return vehicles
 
-    async def getVehicleStatus(self, vehicleId):
-        vehicleStatusResponse = await self.controller.getVehicleStatus(vehicleId)
+    async def get_vehicle_status(self, vehicleId):
+        vehicle_status_response = await self.controller.get_vehicle_status(vehicleId)
 
-        alertInfo = vehicleStatusResponse["alertInfos"][0]
-        remoteInfo = vehicleStatusResponse["remoteInfos"][0]
+        alert_info = vehicle_status_response["alertInfos"][0]
+        remote_info = vehicle_status_response["remoteInfos"][0]
 
-        vehicleStatus = {
-            "lastUpdatedTimestamp": remoteInfo["OccurrenceDate"],
-            "latitude": remoteInfo["PositionInfo"]["Latitude"] * (-1 if remoteInfo["PositionInfo"]["LatitudeFlag"] == 1 else 1),
-            "longitude": remoteInfo["PositionInfo"]["Longitude"] * (-1 if remoteInfo["PositionInfo"]["LongitudeFlag"] == 0 else 1),
-            "positionTimestamp": remoteInfo["PositionInfo"]["AcquisitionDatetime"],
-            "fuelRemainingPercent": remoteInfo["ResidualFuel"]["FuelSegementDActl"],
-            "fuelDistanceRemainingKm": remoteInfo["ResidualFuel"]["RemDrvDistDActlKm"],
-            "odometerKm": remoteInfo["DriveInformation"]["OdoDispValue"],
+        vehicle_status = {
+            "lastUpdatedTimestamp": remote_info["OccurrenceDate"],
+            "latitude": remote_info["PositionInfo"]["Latitude"] * (-1 if remote_info["PositionInfo"]["LatitudeFlag"] == 1 else 1),
+            "longitude": remote_info["PositionInfo"]["Longitude"] * (-1 if remote_info["PositionInfo"]["LongitudeFlag"] == 0 else 1),
+            "positionTimestamp": remote_info["PositionInfo"]["AcquisitionDatetime"],
+            "fuelRemainingPercent": remote_info["ResidualFuel"]["FuelSegementDActl"],
+            "fuelDistanceRemainingKm": remote_info["ResidualFuel"]["RemDrvDistDActlKm"],
+            "odometerKm": remote_info["DriveInformation"]["OdoDispValue"],
             "doors": {
-                "driverDoorOpen": alertInfo["Door"]["DrStatDrv"] == 1,
-                "passengerDoorOpen": alertInfo["Door"]["DrStatPsngr"] == 1,
-                "rearLeftDoorOpen": alertInfo["Door"]["DrStatRl"] == 1,
-                "rearRightDoorOpen": alertInfo["Door"]["DrStatRr"] == 1,
-                "trunkOpen": alertInfo["Door"]["DrStatTrnkLg"] == 1,
-                "hoodOpen": alertInfo["Door"]["DrStatHood"] == 1,
-                "fuelLidOpen": alertInfo["Door"]["FuelLidOpenStatus"] == 1
+                "driverDoorOpen": alert_info["Door"]["DrStatDrv"] == 1,
+                "passengerDoorOpen": alert_info["Door"]["DrStatPsngr"] == 1,
+                "rearLeftDoorOpen": alert_info["Door"]["DrStatRl"] == 1,
+                "rearRightDoorOpen": alert_info["Door"]["DrStatRr"] == 1,
+                "trunkOpen": alert_info["Door"]["DrStatTrnkLg"] == 1,
+                "hoodOpen": alert_info["Door"]["DrStatHood"] == 1,
+                "fuelLidOpen": alert_info["Door"]["FuelLidOpenStatus"] == 1
             },
             "doorLocks": {
-                "driverDoorUnlocked": alertInfo["Door"]["LockLinkSwDrv"] == 1,
-                "passengerDoorUnlocked": alertInfo["Door"]["LockLinkSwPsngr"] == 1,
-                "rearLeftDoorUnlocked": alertInfo["Door"]["LockLinkSwRl"] == 1,
-                "rearRightDoorUnlocked": alertInfo["Door"]["LockLinkSwRr"] == 1,
+                "driverDoorUnlocked": alert_info["Door"]["LockLinkSwDrv"] == 1,
+                "passengerDoorUnlocked": alert_info["Door"]["LockLinkSwPsngr"] == 1,
+                "rearLeftDoorUnlocked": alert_info["Door"]["LockLinkSwRl"] == 1,
+                "rearRightDoorUnlocked": alert_info["Door"]["LockLinkSwRr"] == 1,
             },
             "windows": {
-                "driverWindowOpen": alertInfo["Pw"]["PwPosDrv"] == 1,
-                "passengerWindowOpen": alertInfo["Pw"]["PwPosPsngr"] == 1,
-                "rearLeftWindowOpen": alertInfo["Pw"]["PwPosRl"] == 1,
-                "rearRightWindowOpen": alertInfo["Pw"]["PwPosRr"] == 1
+                "driverWindowOpen": alert_info["Pw"]["PwPosDrv"] == 1,
+                "passengerWindowOpen": alert_info["Pw"]["PwPosPsngr"] == 1,
+                "rearLeftWindowOpen": alert_info["Pw"]["PwPosRl"] == 1,
+                "rearRightWindowOpen": alert_info["Pw"]["PwPosRr"] == 1
             },
-            "hazardLightsOn": alertInfo["HazardLamp"]["HazardSw"] == 1,
+            "hazardLightsOn": alert_info["HazardLamp"]["HazardSw"] == 1,
             "tirePressure": {
-                "frontLeftTirePressurePsi": remoteInfo["TPMSInformation"]["FLTPrsDispPsi"],
-                "frontRightTirePressurePsi": remoteInfo["TPMSInformation"]["FRTPrsDispPsi"],
-                "rearLeftTirePressurePsi": remoteInfo["TPMSInformation"]["RLTPrsDispPsi"],
-                "rearRightTirePressurePsi": remoteInfo["TPMSInformation"]["RRTPrsDispPsi"]
+                "frontLeftTirePressurePsi": remote_info["TPMSInformation"]["FLTPrsDispPsi"],
+                "frontRightTirePressurePsi": remote_info["TPMSInformation"]["FRTPrsDispPsi"],
+                "rearLeftTirePressurePsi": remote_info["TPMSInformation"]["RLTPrsDispPsi"],
+                "rearRightTirePressurePsi": remote_info["TPMSInformation"]["RRTPrsDispPsi"]
             }
         }
 
-        return vehicleStatus
+        return vehicle_status
 
-    async def turnHazardLightsOn(self, vehicleId):
-        await self.controller.lightOn(vehicleId)
+    async def turn_on_hazard_lights(self, vehicleId):
+        await self.controller.light_on(vehicleId)
 
-    async def turnHazardLightsOff(self, vehicleId):
-        await self.controller.lightOff(vehicleId)
+    async def turn_off_hazard_lights(self, vehicleId):
+        await self.controller.light_off(vehicleId)
 
-    async def unlockDoors(self, vehicleId):
-        await self.controller.doorUnlock(vehicleId)
+    async def unlock_doors(self, vehicleId):
+        await self.controller.door_unlock(vehicleId)
 
-    async def lockDoors(self, vehicleId):
-        await self.controller.lockDoors(vehicleId)
+    async def lock_doors(self, vehicleId):
+        await self.controller.door_lock(vehicleId)
 
-    async def startEngine(self, vehicleId):
-        await self.controller.engineStart(vehicleId)
+    async def start_engine(self, vehicleId):
+        await self.controller.engine_start(vehicleId)
 
-    async def stopEngine(self, vehicleId):
-        await self.controller.engineStop(vehicleId)
+    async def stop_engine(self, vehicleId):
+        await self.controller.engine_stop(vehicleId)
