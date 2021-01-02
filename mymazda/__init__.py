@@ -1,1 +1,1 @@
-from mymazda.controller import Controller
+from mymazda.client import Client
