@@ -14,15 +14,14 @@ class Client:
         vec_base_infos = await self.controller.get_vec_base_infos()
 
         vehicles = []
+        for vec_base_info in vec_base_infos["vecBaseInfos"]:
+            other_veh_info = json.loads(vec_base_info["Vehicle"]["vehicleInformation"])
 
-        for vecBaseInfo in vec_base_infos["vecBaseInfos"]:
-            other_veh_info = json.loads(vecBaseInfo["Vehicle"]["vehicleInformation"])
-
-            nickname = await self.controller.get_nickname(vecBaseInfo["vin"])
+            nickname = await self.controller.get_nickname(vec_base_info["vin"])
             
             vehicle = {
-                "vin": vecBaseInfo["vin"],
-                "id": vecBaseInfo["Vehicle"]["CvInformation"]["internalVin"],
+                "vin": vec_base_info["vin"],
+                "id": vec_base_info["Vehicle"]["CvInformation"]["internalVin"],
                 "nickname": nickname,
                 "carlineCode": other_veh_info["OtherInformation"]["carlineCode"],
                 "carlineName": other_veh_info["OtherInformation"]["carlineName"],
