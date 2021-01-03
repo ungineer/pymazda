@@ -101,4 +101,4 @@ class Client:
         await self.controller.engine_start(vehicleId)
 
     async def stop_engine(self, vehicleId):
-        await self.controller.update_nickname(vehicleId)
+        await self.controller.engine_stop(vehicleId)
