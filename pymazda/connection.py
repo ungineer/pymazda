@@ -1,9 +1,11 @@
 import aiohttp
-import time
-import hashlib
 import base64
+import hashlib
 import json
+import logging
+import time
 from urllib.parse import urlencode
+
 from pymazda.crypto_utils import encryptAES128CBCBufferToBase64String, decryptAES128CBCBufferToString, encryptRSAECBPKCS1Padding
 from pymazda.exceptions import MazdaException, MazdaAPIEncryptionException, MazdaAuthenticationException, MazdaAccountLockedException, MazdaTokenExpiredException
 
@@ -37,6 +39,8 @@ class Connection:
             self._session = aiohttp.ClientSession()
         else:
             self._session = websession
+        
+        self.logger = logging.getLogger(__name__)
 
     def __get_timestamp_str_ms(self):
         return str(int(round(time.time() * 1000)))
@@ -108,13 +112,19 @@ class Connection:
         if needs_auth:
             await self.__ensure_token_is_valid()
 
+        self.logger.debug(f"Sending {method} request to {uri}")
+
         try:
             return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
         except (MazdaAPIEncryptionException):
+            self.logger.debug("Server reports request was not encrypted properly. Retrieving new encryption keys.")
             await self.__retrieve_keys()
+            self.logger.debug("Retrying request")
             return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
         except (MazdaTokenExpiredException):
+            self.logger.debug("Server reports access token was expired. Retrieving new access token.")
             await self.login()
+            self.logger.debug("Retrying request")
             return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
 
     async def __send_api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
@@ -181,12 +191,16 @@ class Connection:
             await self.login()
 
     async def __retrieve_keys(self):
+        self.logger.debug("Retrieving encryption keys")
         response = await self.api_request("POST", "service/checkVersion", needs_keys=False, needs_auth=False)
+        self.logger.debug("Successfully retrieved encryption keys")
 
         self.enc_key = response["encKey"]
         self.sign_key = response["signKey"]
 
     async def login(self):
+        self.logger.debug("Logging in")
+        self.logger.debug("Retrieving public key to encrypt password")
         encryption_key_response = await self._session.request("GET", "https://ptznwbh8.mazda.com/appapi/v1/system/encryptionKey?appId=MazdaApp&locale=en-US&deviceId=ACCT1195961580&sdkVersion=11.2.0000.002", headers={"User-Agent": "MyMazda/7.0.1 (Google Pixel 3a; Android 11)"})
         
         encryption_key_response_json = await encryption_key_response.json()
@@ -195,6 +209,7 @@ class Connection:
         encrypted_password = self.__encrypt_payload_with_public_key(self.password, public_key)
         version_prefix = encryption_key_response_json["data"]["versionPrefix"]
 
+        self.logger.debug("Sending login request")
         login_response = await self._session.request(
             "POST",
             "https://ptznwbh8.mazda.com/appapi/v1/user/login",
@@ -218,5 +233,6 @@ class Connection:
         if login_response_json["status"] != "OK":
             raise MazdaException("Login failed")
 
+        self.logger.debug("Successfully logged in")
         self.access_token = login_response_json["data"]["accessToken"]
         self.access_token_expiration_ts = login_response_json["data"]["accessTokenExpirationTs"]
