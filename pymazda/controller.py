@@ -125,3 +125,36 @@ class Controller:
             raise MazdaException("Failed to stop engine")
 
         return response
+
+    async def get_nickname(self, vin):
+        if len(vin) != 17:
+            raise MazdaException("Invalid VIN")
+
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "vin": vin
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/getNickName/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to get vehicle nickname")
+
+        return response["carlineDesc"]
+
+    async def update_nickname(self, vin, nickname):
+        if len(vin) != 17:
+            raise MazdaException("Invalid VIN")
+        if len(nickname) > 20:
+            raise MazdaException("Nickname is too long")
+        
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "vin": vin,
+            "vtitle": nickname
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/updateNickName/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to update vehicle nickname")

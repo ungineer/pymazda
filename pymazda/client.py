@@ -18,9 +18,12 @@ class Client:
         for vecBaseInfo in vec_base_infos["vecBaseInfos"]:
             other_veh_info = json.loads(vecBaseInfo["Vehicle"]["vehicleInformation"])
 
+            nickname = await self.controller.get_nickname(vecBaseInfo["vin"])
+            
             vehicle = {
                 "vin": vecBaseInfo["vin"],
                 "id": vecBaseInfo["Vehicle"]["CvInformation"]["internalVin"],
+                "nickname": nickname,
                 "carlineCode": other_veh_info["OtherInformation"]["carlineCode"],
                 "carlineName": other_veh_info["OtherInformation"]["carlineName"],
                 "modelYear": other_veh_info["OtherInformation"]["modelYear"],
@@ -99,4 +102,4 @@ class Client:
         await self.controller.engine_start(vehicleId)
 
     async def stop_engine(self, vehicleId):
-        await self.controller.engine_stop(vehicleId)
+        await self.controller.update_nickname(vehicleId)
