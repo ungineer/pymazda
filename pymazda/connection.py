@@ -11,6 +11,7 @@ from pymazda.exceptions import MazdaException, MazdaAPIEncryptionException, Mazd
 
 
 APP_CODE = "202007270941270111799"
+BASE_URL = "https://0cxo7m58.mazda.com/prod/"
 IV = "0102030405060708"
 SIGNATURE_MD5 = "C383D8C4D279B78130AD52DC71D95CAA"
 APP_PACKAGE_ID = "com.interrait.mymazda"
@@ -19,8 +20,7 @@ USER_AGENT = "MyMazda-Android/7.1.0"
 APP_OS = "Android"
 APP_VERSION = "7.1.0"
 
-BASE_URL = "https://0cxo7m58.mazda.com/prod/"
-
+MAX_RETRIES = 4
 
 class Connection:
     """Main class for handling MyMazda API connection"""
@@ -107,25 +107,30 @@ class Connection:
         return base64.b64encode(encryptedBuffer).decode("utf-8")
 
     async def api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
+        return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries=0)
+    
+    async def __api_request_retry(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False, num_retries=0):
+        if num_retries > MAX_RETRIES:
+            raise MazdaException("Request exceeded max number of retries")
+
         if needs_keys:
             await self.__ensure_keys_present()
         if needs_auth:
             await self.__ensure_token_is_valid()
 
-        self.logger.debug(f"Sending {method} request to {uri}")
+        retry_message = (" attempt #" + (num_retries + 1)) if (num_retries > 0) else ""
+        self.logger.debug(f"Sending {method} request to {uri}{retry_message}")
 
         try:
             return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
         except (MazdaAPIEncryptionException):
             self.logger.debug("Server reports request was not encrypted properly. Retrieving new encryption keys.")
             await self.__retrieve_keys()
-            self.logger.debug("Retrying request")
-            return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
+            return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
         except (MazdaTokenExpiredException):
             self.logger.debug("Server reports access token was expired. Retrieving new access token.")
             await self.login()
-            self.logger.debug("Retrying request")
-            return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
+            return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
 
     async def __send_api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
         timestamp = self.__get_timestamp_str_ms()
