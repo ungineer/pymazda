@@ -6,8 +6,21 @@ import logging
 import time
 from urllib.parse import urlencode
 
-from pymazda.crypto_utils import encryptAES128CBCBufferToBase64String, decryptAES128CBCBufferToString, encryptRSAECBPKCS1Padding
-from pymazda.exceptions import MazdaException, MazdaAPIEncryptionException, MazdaAuthenticationException, MazdaAccountLockedException, MazdaTokenExpiredException
+from pymazda.crypto_utils import (
+    encrypt_aes128cbc_buffer_to_base64_str,
+    decrypt_aes128cbc_buffer_to_str,
+    encrypt_rsaecbpkcs1_padding,
+    generate_uuid_from_seed,
+    generate_usher_device_id_from_seed
+)
+
+from pymazda.exceptions import (
+    MazdaException,
+    MazdaAPIEncryptionException,
+    MazdaAuthenticationException,
+    MazdaAccountLockedException,
+    MazdaTokenExpiredException
+)
 
 
 APP_CODE = "202007270941270111799"
@@ -16,9 +29,8 @@ USHER_URL = "https://ptznwbh8.mazda.com/appapi/v1/"
 IV = "0102030405060708"
 SIGNATURE_MD5 = "C383D8C4D279B78130AD52DC71D95CAA"
 APP_PACKAGE_ID = "com.interrait.mymazda"
-DEVICE_ID = "D9E89AFC-BD3C-309F-A48C-A2A9466DFE9C"
 USER_AGENT_BASE_API = "MyMazda-Android/7.1.0"
-USER_AGENT_USHER_API = "MyMazda/7.1.0 (Google Pixel 3a; Android 11)";
+USER_AGENT_USHER_API = "MyMazda/7.1.0 (Google Pixel 3a; Android 11)"
 APP_OS = "Android"
 APP_VERSION = "7.1.0"
 
@@ -30,6 +42,9 @@ class Connection:
     def __init__(self, email, password, websession=None):
         self.email = email
         self.password = password
+
+        self.base_api_device_id = generate_uuid_from_seed(email)
+        self.usher_api_device_id = generate_usher_device_id_from_seed(email)
 
         self.enc_key = None
         self.sign_key = None
@@ -87,12 +102,12 @@ class Connection:
         if payload is None or payload == "":
             return ""
 
-        return encryptAES128CBCBufferToBase64String(payload.encode("utf-8"), self.enc_key, IV)
+        return encrypt_aes128cbc_buffer_to_base64_str(payload.encode("utf-8"), self.enc_key, IV)
 
     def __decrypt_payload_using_app_code(self, payload):
         buf = base64.b64decode(payload)
         key = self.__get_decryption_key_from_app_code()
-        decrypted = decryptAES128CBCBufferToString(buf, key, IV)
+        decrypted = decrypt_aes128cbc_buffer_to_str(buf, key, IV)
         return json.loads(decrypted)
 
     def __decrypt_payload_using_key(self, payload):
@@ -100,12 +115,12 @@ class Connection:
             raise MazdaException("Missing encryption key")
 
         buf = base64.b64decode(payload)
-        decrypted = decryptAES128CBCBufferToString(buf, self.enc_key, IV)
+        decrypted = decrypt_aes128cbc_buffer_to_str(buf, self.enc_key, IV)
         return json.loads(decrypted)
 
     def __encrypt_payload_with_public_key(self, password, publicKey):
         timestamp = self.__get_timestamp_str()
-        encryptedBuffer = encryptRSAECBPKCS1Padding(password + ":" + timestamp, publicKey)
+        encryptedBuffer = encrypt_rsaecbpkcs1_padding(password + ":" + timestamp, publicKey)
         return base64.b64encode(encryptedBuffer).decode("utf-8")
 
     async def api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
@@ -151,7 +166,7 @@ class Connection:
             encrypted_body_Str = self.__encrypt_payload_using_key(original_body_str)
 
         headers = {
-            "device-id": DEVICE_ID,
+            "device-id": self.base_api_device_id,
             "app-code": APP_CODE,
             "app-os": APP_OS,
             "user-agent": USER_AGENT_BASE_API,
@@ -214,7 +229,7 @@ class Connection:
             params={
                 "appId": "MazdaApp",
                 "locale": "en-US",
-                "deviceId": "ACCT1195961580",
+                "deviceId": self.usher_api_device_id,
                 "sdkVersion": "11.2.0000.002"
             },
             headers={
@@ -237,7 +252,7 @@ class Connection:
             },
             json={
                 "appId": "MazdaApp",
-                "deviceId": "ACCT1195961580",
+                "deviceId": self.usher_api_device_id,
                 "locale": "en-US",
                 "password": version_prefix + encrypted_password,
                 "sdkVersion": "11.2.0000.002",
