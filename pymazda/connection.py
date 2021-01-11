@@ -12,11 +12,13 @@ from pymazda.exceptions import MazdaException, MazdaAPIEncryptionException, Mazd
 
 APP_CODE = "202007270941270111799"
 BASE_URL = "https://0cxo7m58.mazda.com/prod/"
+USHER_URL = "https://ptznwbh8.mazda.com/appapi/v1/"
 IV = "0102030405060708"
 SIGNATURE_MD5 = "C383D8C4D279B78130AD52DC71D95CAA"
 APP_PACKAGE_ID = "com.interrait.mymazda"
 DEVICE_ID = "D9E89AFC-BD3C-309F-A48C-A2A9466DFE9C"
-USER_AGENT = "MyMazda-Android/7.1.0"
+USER_AGENT_BASE_API = "MyMazda-Android/7.1.0"
+USER_AGENT_USHER_API = "MyMazda/7.1.0 (Google Pixel 3a; Android 11)";
 APP_OS = "Android"
 APP_VERSION = "7.1.0"
 
@@ -152,7 +154,7 @@ class Connection:
             "device-id": DEVICE_ID,
             "app-code": APP_CODE,
             "app-os": APP_OS,
-            "user-agent": USER_AGENT,
+            "user-agent": USER_AGENT_BASE_API,
             "app-version": APP_VERSION,
             "app-unique-id": APP_PACKAGE_ID,
             "region": "us",
@@ -204,9 +206,21 @@ class Connection:
         self.sign_key = response["signKey"]
 
     async def login(self):
-        self.logger.debug("Logging in")
+        self.logger.debug("Logging in as " + self.email)
         self.logger.debug("Retrieving public key to encrypt password")
-        encryption_key_response = await self._session.request("GET", "https://ptznwbh8.mazda.com/appapi/v1/system/encryptionKey?appId=MazdaApp&locale=en-US&deviceId=ACCT1195961580&sdkVersion=11.2.0000.002", headers={"User-Agent": "MyMazda/7.0.1 (Google Pixel 3a; Android 11)"})
+        encryption_key_response = await self._session.request(
+            "GET",
+            USHER_URL + "system/encryptionKey",
+            params={
+                "appId": "MazdaApp",
+                "locale": "en-US",
+                "deviceId": "ACCT1195961580",
+                "sdkVersion": "11.2.0000.002"
+            },
+            headers={
+                "User-Agent": USER_AGENT_USHER_API
+            }
+        )
         
         encryption_key_response_json = await encryption_key_response.json()
 
@@ -217,8 +231,10 @@ class Connection:
         self.logger.debug("Sending login request")
         login_response = await self._session.request(
             "POST",
-            "https://ptznwbh8.mazda.com/appapi/v1/user/login",
-            headers={"User-Agent": "MyMazda/7.0.1 (Google Pixel 3a; Android 11)"},
+            USHER_URL + "user/login",
+            headers={
+                "User-Agent": USER_AGENT_USHER_API
+            },
             json={
                 "appId": "MazdaApp",
                 "deviceId": "ACCT1195961580",
@@ -238,6 +254,6 @@ class Connection:
         if login_response_json["status"] != "OK":
             raise MazdaException("Login failed")
 
-        self.logger.debug("Successfully logged in")
+        self.logger.debug("Successfully logged in as " + self.email)
         self.access_token = login_response_json["data"]["accessToken"]
         self.access_token_expiration_ts = login_response_json["data"]["accessTokenExpirationTs"]
