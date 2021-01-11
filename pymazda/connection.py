@@ -33,6 +33,7 @@ USER_AGENT_BASE_API = "MyMazda-Android/7.1.0"
 USER_AGENT_USHER_API = "MyMazda/7.1.0 (Google Pixel 3a; Android 11)"
 APP_OS = "Android"
 APP_VERSION = "7.1.0"
+USHER_SDK_VERSION = "11.2.0000.002"
 
 MAX_RETRIES = 4
 
@@ -135,7 +136,7 @@ class Connection:
         if needs_auth:
             await self.__ensure_token_is_valid()
 
-        retry_message = (" attempt #" + (num_retries + 1)) if (num_retries > 0) else ""
+        retry_message = (" - attempt #" + str(num_retries + 1)) if (num_retries > 0) else ""
         self.logger.debug(f"Sending {method} request to {uri}{retry_message}")
 
         try:
@@ -230,7 +231,7 @@ class Connection:
                 "appId": "MazdaApp",
                 "locale": "en-US",
                 "deviceId": self.usher_api_device_id,
-                "sdkVersion": "11.2.0000.002"
+                "sdkVersion": USHER_SDK_VERSION
             },
             headers={
                 "User-Agent": USER_AGENT_USHER_API
@@ -255,7 +256,7 @@ class Connection:
                 "deviceId": self.usher_api_device_id,
                 "locale": "en-US",
                 "password": version_prefix + encrypted_password,
-                "sdkVersion": "11.2.0000.002",
+                "sdkVersion": USHER_SDK_VERSION,
                 "userId": self.email,
                 "userIdType": "email"
             })
