@@ -44,8 +44,8 @@ class Client:
 
         return vehicles
 
-    async def get_vehicle_status(self, vehicleId):
-        vehicle_status_response = await self.controller.get_vehicle_status(vehicleId)
+    async def get_vehicle_status(self, vehicle_id):
+        vehicle_status_response = await self.controller.get_vehicle_status(vehicle_id)
 
         alert_info = vehicle_status_response["alertInfos"][0]
         remote_info = vehicle_status_response["remoteInfos"][0]
@@ -90,20 +90,20 @@ class Client:
 
         return vehicle_status
 
-    async def turn_on_hazard_lights(self, vehicleId):
-        await self.controller.light_on(vehicleId)
+    async def turn_on_hazard_lights(self, vehicle_id):
+        await self.controller.light_on(vehicle_id)
 
-    async def turn_off_hazard_lights(self, vehicleId):
-        await self.controller.light_off(vehicleId)
+    async def turn_off_hazard_lights(self, vehicle_id):
+        await self.controller.light_off(vehicle_id)
 
-    async def unlock_doors(self, vehicleId):
-        await self.controller.door_unlock(vehicleId)
+    async def unlock_doors(self, vehicle_id):
+        await self.controller.door_unlock(vehicle_id)
 
-    async def lock_doors(self, vehicleId):
-        await self.controller.door_lock(vehicleId)
+    async def lock_doors(self, vehicle_id):
+        await self.controller.door_lock(vehicle_id)
 
-    async def start_engine(self, vehicleId):
-        await self.controller.engine_start(vehicleId)
+    async def start_engine(self, vehicle_id):
+        await self.controller.engine_start(vehicle_id)
 
-    async def stop_engine(self, vehicleId):
-        await self.controller.engine_stop(vehicleId)
+    async def stop_engine(self, vehicle_id):
+        await self.controller.engine_stop(vehicle_id)

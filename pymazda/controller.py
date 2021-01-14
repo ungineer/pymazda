@@ -18,10 +18,10 @@ class Controller:
     async def get_vec_base_infos(self):
         return await self.connection.api_request("POST", "remoteServices/getVecBaseInfos/v4", body_dict={"internaluserid": "__INTERNAL_ID__"}, needs_keys=True, needs_auth=True)
 
-    async def get_vehicle_status(self, internalVin):
+    async def get_vehicle_status(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin,
+            "internalvin": internal_vin,
             "limit": 1,
             "offset": 0,
             "vecinfotype": "0"
@@ -33,10 +33,10 @@ class Controller:
 
         return response
 
-    async def get_health_report(self, internalVin):
+    async def get_health_report(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin,
+            "internalvin": internal_vin,
             "limit": 1,
             "offset": 0
         }
@@ -48,10 +48,10 @@ class Controller:
 
         return response
 
-    async def door_unlock(self, internalVin):
+    async def door_unlock(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin
+            "internalvin": internal_vin
         }
 
         response = await self.connection.api_request("POST", "remoteServices/doorUnlock/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
@@ -61,10 +61,10 @@ class Controller:
 
         return response
 
-    async def door_lock(self, internalVin):
+    async def door_lock(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin
+            "internalvin": internal_vin
         }
 
         response = await self.connection.api_request("POST", "remoteServices/doorLock/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
@@ -74,10 +74,10 @@ class Controller:
 
         return response
 
-    async def light_on(self, internalVin):
+    async def light_on(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin
+            "internalvin": internal_vin
         }
 
         response = await self.connection.api_request("POST", "remoteServices/lightOn/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
@@ -87,10 +87,10 @@ class Controller:
 
         return response
 
-    async def light_off(self, internalVin):
+    async def light_off(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin
+            "internalvin": internal_vin
         }
 
         response = await self.connection.api_request("POST", "remoteServices/lightOff/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
@@ -100,10 +100,10 @@ class Controller:
 
         return response
 
-    async def engine_start(self, internalVin):
+    async def engine_start(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin
+            "internalvin": internal_vin
         }
 
         response = await self.connection.api_request("POST", "remoteServices/engineStart/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
@@ -113,10 +113,10 @@ class Controller:
 
         return response
 
-    async def engine_stop(self, internalVin):
+    async def engine_stop(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
-            "internalvin": internalVin
+            "internalvin": internal_vin
         }
 
         response = await self.connection.api_request("POST", "remoteServices/engineStop/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
@@ -142,16 +142,16 @@ class Controller:
 
         return response["carlineDesc"]
 
-    async def update_nickname(self, vin, nickname):
+    async def update_nickname(self, vin, new_nickname):
         if len(vin) != 17:
             raise MazdaException("Invalid VIN")
-        if len(nickname) > 20:
+        if len(new_nickname) > 20:
             raise MazdaException("Nickname is too long")
         
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
             "vin": vin,
-            "vtitle": nickname
+            "vtitle": new_nickname
         }
 
         response = await self.connection.api_request("POST", "remoteServices/updateNickName/v4", body_dict=post_body, needs_keys=True, needs_auth=True)

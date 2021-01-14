@@ -94,8 +94,8 @@ class Connection:
         val2 = hashlib.md5((val1 + SIGNATURE_MD5).encode()).hexdigest().lower()
         return val2[4:20]
 
-    def __get_temporary_sign_key_from_app_code(self, appCode):
-        val1 = hashlib.md5((appCode + APP_PACKAGE_ID).encode()).hexdigest().upper()
+    def __get_temporary_sign_key_from_app_code(self):
+        val1 = hashlib.md5((self.app_code + APP_PACKAGE_ID).encode()).hexdigest().upper()
         val2 = hashlib.md5((val1 + SIGNATURE_MD5).encode()).hexdigest().lower()
         return val2[20:32] + val2[0:10] + val2[4:6]
 
@@ -105,7 +105,7 @@ class Connection:
 
         timestamp_extended = (timestamp + timestamp[6:] + timestamp[3:]).upper()
 
-        temporary_sign_key = self.__get_temporary_sign_key_from_app_code(self.app_code)
+        temporary_sign_key = self.__get_temporary_sign_key_from_app_code()
 
         return self.__get_payload_sign(timestamp_extended, temporary_sign_key).upper()
 
@@ -117,8 +117,8 @@ class Connection:
 
         return self.__get_payload_sign(self.__encrypt_payload_using_key(payload) + timestamp + timestamp[6:] + timestamp[3:], self.sign_key)
 
-    def __get_payload_sign(self, encryptedPayloadAndTimestamp, signKey):
-        return hashlib.sha256((encryptedPayloadAndTimestamp + signKey).encode()).hexdigest().upper()
+    def __get_payload_sign(self, encrypted_payload_and_timestamp, sign_key):
+        return hashlib.sha256((encrypted_payload_and_timestamp + sign_key).encode()).hexdigest().upper()
 
     def __encrypt_payload_using_key(self, payload):
         if self.enc_key is None or self.enc_key == "":
@@ -142,9 +142,9 @@ class Connection:
         decrypted = decrypt_aes128cbc_buffer_to_str(buf, self.enc_key, IV)
         return json.loads(decrypted)
 
-    def __encrypt_payload_with_public_key(self, password, publicKey):
+    def __encrypt_payload_with_public_key(self, password, public_key):
         timestamp = self.__get_timestamp_str()
-        encryptedBuffer = encrypt_rsaecbpkcs1_padding(password + ":" + timestamp, publicKey)
+        encryptedBuffer = encrypt_rsaecbpkcs1_padding(password + ":" + timestamp, public_key)
         return base64.b64encode(encryptedBuffer).decode("utf-8")
 
     async def api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
