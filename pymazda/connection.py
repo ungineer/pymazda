@@ -196,10 +196,7 @@ class Connection:
             "user-agent": USER_AGENT_BASE_API,
             "app-version": APP_VERSION,
             "app-unique-id": APP_PACKAGE_ID,
-            "region": "us",
             "access-token": (self.access_token if needs_auth else ""),
-            "language": "en-US",
-            "locale": "en-US",
             "X-acf-sensor-data": "",
             "req-id": "req_" + timestamp,
             "timestamp": timestamp
