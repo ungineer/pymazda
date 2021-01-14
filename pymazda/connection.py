@@ -16,16 +16,31 @@ from pymazda.crypto_utils import (
 
 from pymazda.exceptions import (
     MazdaException,
+    MazdaConfigException,
     MazdaAPIEncryptionException,
     MazdaAuthenticationException,
     MazdaAccountLockedException,
     MazdaTokenExpiredException
 )
 
+REGION_CONFIG = {
+    "MNAO": {
+        "app_code": "202007270941270111799",
+        "base_url": "https://0cxo7m58.mazda.com/prod/",
+        "usher_url": "https://ptznwbh8.mazda.com/appapi/v1/"
+    },
+    "MME": {
+        "app_code": "202008100250281064816",
+        "base_url": "https://e9stj7g7.mazda.com/prod/",
+        "usher_url": "https://rz97suam.mazda.com/appapi/v1/"
+    },
+    "MJO": {
+        "app_code": "202009170613074283422",
+        "base_url": "https://wcs9p6wj.mazda.com/prod/",
+        "usher_url": "https://c5ulfwxr.mazda.com/appapi/v1/"
+    }
+}
 
-APP_CODE = "202007270941270111799"
-BASE_URL = "https://0cxo7m58.mazda.com/prod/"
-USHER_URL = "https://ptznwbh8.mazda.com/appapi/v1/"
 IV = "0102030405060708"
 SIGNATURE_MD5 = "C383D8C4D279B78130AD52DC71D95CAA"
 APP_PACKAGE_ID = "com.interrait.mymazda"
@@ -40,9 +55,17 @@ MAX_RETRIES = 4
 class Connection:
     """Main class for handling MyMazda API connection"""
     
-    def __init__(self, email, password, websession=None):
+    def __init__(self, email, password, region, websession=None):
         self.email = email
         self.password = password
+
+        if region in REGION_CONFIG:
+            region_config = REGION_CONFIG[region]
+            self.app_code = region_config["app_code"]
+            self.base_url = region_config["base_url"]
+            self.usher_url = region_config["usher_url"]
+        else:
+            raise MazdaConfigException("Invalid region")
 
         self.base_api_device_id = generate_uuid_from_seed(email)
         self.usher_api_device_id = generate_usher_device_id_from_seed(email)
@@ -67,7 +90,7 @@ class Connection:
         return str(int(round(time.time())))
 
     def __get_decryption_key_from_app_code(self):
-        val1 = hashlib.md5((APP_CODE + APP_PACKAGE_ID).encode()).hexdigest().upper()
+        val1 = hashlib.md5((self.app_code + APP_PACKAGE_ID).encode()).hexdigest().upper()
         val2 = hashlib.md5((val1 + SIGNATURE_MD5).encode()).hexdigest().lower()
         return val2[4:20]
 
@@ -82,7 +105,7 @@ class Connection:
 
         timestamp_extended = (timestamp + timestamp[6:] + timestamp[3:]).upper()
 
-        temporary_sign_key = self.__get_temporary_sign_key_from_app_code(APP_CODE)
+        temporary_sign_key = self.__get_temporary_sign_key_from_app_code(self.app_code)
 
         return self.__get_payload_sign(timestamp_extended, temporary_sign_key).upper()
 
@@ -168,7 +191,7 @@ class Connection:
 
         headers = {
             "device-id": self.base_api_device_id,
-            "app-code": APP_CODE,
+            "app-code": self.app_code,
             "app-os": APP_OS,
             "user-agent": USER_AGENT_BASE_API,
             "app-version": APP_VERSION,
@@ -189,7 +212,7 @@ class Connection:
         elif method == "POST":
             headers["sign"] = self.__get_sign_from_payload_and_timestamp(original_body_str, timestamp)
 
-        response = await self._session.request(method, BASE_URL + uri, headers=headers, data=encrypted_body_Str)
+        response = await self._session.request(method, self.base_url + uri, headers=headers, data=encrypted_body_Str)
 
         response_json = await response.json()
 
@@ -226,7 +249,7 @@ class Connection:
         self.logger.debug("Retrieving public key to encrypt password")
         encryption_key_response = await self._session.request(
             "GET",
-            USHER_URL + "system/encryptionKey",
+            self.usher_url + "system/encryptionKey",
             params={
                 "appId": "MazdaApp",
                 "locale": "en-US",
@@ -247,7 +270,7 @@ class Connection:
         self.logger.debug("Sending login request")
         login_response = await self._session.request(
             "POST",
-            USHER_URL + "user/login",
+            self.usher_url + "user/login",
             headers={
                 "User-Agent": USER_AGENT_USHER_API
             },

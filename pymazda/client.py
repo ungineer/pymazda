@@ -1,11 +1,16 @@
 import json
 
 from pymazda.controller import Controller
-
+from pymazda.exceptions import MazdaConfigException
 
 class Client:
-    def __init__(self, email, password, websession=None):
-        self.controller = Controller(email, password, websession)
+    def __init__(self, email, password, region, websession=None):
+        if email is None or len(email) == 0:
+            raise MazdaConfigException("Invalid or missing email address")
+        if password is None or len(password) == 0:
+            raise MazdaConfigException("Invalid or missing password")
+
+        self.controller = Controller(email, password, region, websession)
 
     async def validate_credentials(self):
         await self.controller.login()

@@ -1,3 +1,11 @@
+class MazdaConfigException(Exception):
+    """Raised when Mazda API client is configured incorrectly"""
+
+    def __init__(self, status):
+        """Initialize exception"""
+        super(MazdaConfigException, self).__init__(status)
+        self.status = status
+
 class MazdaAuthenticationException(Exception):
     """Raised when email address or password are invalid during authentication"""
 
