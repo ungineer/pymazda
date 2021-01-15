@@ -10,7 +10,7 @@ import pymazda
 
 async def test() -> None:
     # Initialize API client
-    client = pymazda.Client("myemail", "mypassword")
+    client = pymazda.Client("myemail", "mypassword", "myregion")
 
     # Get list of vehicles from the API
     vehicles = await client.get_vehicles()
@@ -31,3 +31,9 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(test())
 ```
+
+## Regions
+Supported regions are:
+ - North America (`MNAO`)
+ - Europe (`MME`)
+ - Japan (`MJO`)
