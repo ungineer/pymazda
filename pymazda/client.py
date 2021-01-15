@@ -16,17 +16,23 @@ class Client:
         await self.controller.login()
     
     async def get_vehicles(self):
-        vec_base_infos = await self.controller.get_vec_base_infos()
+        vec_base_infos_response = await self.controller.get_vec_base_infos()
 
         vehicles = []
-        for vec_base_info in vec_base_infos["vecBaseInfos"]:
-            other_veh_info = json.loads(vec_base_info["Vehicle"]["vehicleInformation"])
+        for i, current_vec_base_info in enumerate(vec_base_infos_response["vecBaseInfos"]):
+            current_vehicle_flags = vec_base_infos_response["vehicleFlags"][i]
 
-            nickname = await self.controller.get_nickname(vec_base_info["vin"])
+            # Ignore vehicles which are not enrolled in Mazda Connected Services
+            if current_vehicle_flags["vinRegistStatus"] != 3:
+                continue
+
+            other_veh_info = json.loads(current_vec_base_info["Vehicle"]["vehicleInformation"])
+
+            nickname = await self.controller.get_nickname(current_vec_base_info["vin"])
             
             vehicle = {
-                "vin": vec_base_info["vin"],
-                "id": vec_base_info["Vehicle"]["CvInformation"]["internalVin"],
+                "vin": current_vec_base_info["vin"],
+                "id": current_vec_base_info["Vehicle"]["CvInformation"]["internalVin"],
                 "nickname": nickname,
                 "carlineCode": other_veh_info["OtherInformation"]["carlineCode"],
                 "carlineName": other_veh_info["OtherInformation"]["carlineName"],
@@ -37,7 +43,7 @@ class Client:
                 "interiorColorCode": other_veh_info["OtherInformation"]["interiorColorCode"],
                 "interiorColorName": other_veh_info["OtherInformation"]["interiorColorName"],
                 "exteriorColorCode": other_veh_info["OtherInformation"]["exteriorColorCode"],
-                "exteriorColorName": other_veh_info["OtherInformation"]["exteriorColorName"],
+                "exteriorColorName": other_veh_info["OtherInformation"]["exteriorColorName"]
             }
 
             vehicles.append(vehicle)
