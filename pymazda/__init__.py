@@ -4,5 +4,6 @@ from pymazda.exceptions import (
     MazdaAPIEncryptionException,
     MazdaAuthenticationException,
     MazdaAccountLockedException,
-    MazdaTokenExpiredException
+    MazdaTokenExpiredException,
+    MazdaLoginFailedException
 )

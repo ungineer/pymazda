@@ -45,3 +45,11 @@ class MazdaException(Exception):
         """Initialize exception"""
         super(MazdaException, self).__init__(status)
         self.status = status
+
+class MazdaLoginFailedException(Exception):
+    """Raised when login fails for an unknown reason"""
+
+    def __init__(self, status):
+        """Initialize exception"""
+        super(MazdaLoginFailedException, self).__init__(status)
+        self.status = status

@@ -20,7 +20,8 @@ from pymazda.exceptions import (
     MazdaAPIEncryptionException,
     MazdaAuthenticationException,
     MazdaAccountLockedException,
-    MazdaTokenExpiredException
+    MazdaTokenExpiredException,
+    MazdaLoginFailedException
 )
 
 REGION_CONFIG = {
@@ -172,6 +173,10 @@ class Connection:
             self.logger.debug("Server reports access token was expired. Retrieving new access token.")
             await self.login()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
+        except (MazdaLoginFailedException):
+            self.logger.debug("Login failed for an unknown reason. Trying again.")
+            await self.login()
+            return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
 
     async def __send_api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
         timestamp = self.__get_timestamp_str_ms()
@@ -230,6 +235,13 @@ class Connection:
             await self.__retrieve_keys()
 
     async def __ensure_token_is_valid(self):
+        if self.access_token is None or self.access_token_expiration_ts is None:
+            self.logger.debug("No access token present. Logging in.")
+        elif self.access_token_expiration_ts <= time.time():
+            self.logger.debug("Access token is expired. Fetching a new one.")
+            self.access_token = None
+            self.access_token_expiration_ts = None
+
         if self.access_token is None or self.access_token_expiration_ts is None or self.access_token_expiration_ts <= time.time():
             await self.login()
 
@@ -284,11 +296,14 @@ class Connection:
         login_response_json = await login_response.json()
 
         if login_response_json["status"] == "INVALID_CREDENTIAL":
+            self.logger.debug("Login failed due to invalid email or password")
             raise MazdaAuthenticationException("Invalid email or password")
         if login_response_json["status"] == "USER_LOCKED":
-            raise MazdaAccountLockedException("Account has been locked")
+            self.logger.debug("Login failed to account being locked")
+            raise MazdaAccountLockedException("Account is locked")
         if login_response_json["status"] != "OK":
-            raise MazdaException("Login failed")
+            self.logger.debug("Login failed" + ((": " + login_response_json["status"]) if ("status" in login_response_json) else ""))
+            raise MazdaLoginFailedException("Login failed")
 
         self.logger.debug("Successfully logged in as " + self.email)
         self.access_token = login_response_json["data"]["accessToken"]
