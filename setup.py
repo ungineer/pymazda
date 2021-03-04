@@ -11,6 +11,7 @@ setuptools.setup(
     description="An API client for interacting with the MyMazda (Mazda Connected Services) API",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    license="MIT",
     url="https://github.com/bdr99/pymazda",
     packages=setuptools.find_packages(),
     classifiers=[
