@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pymazda",  # Replace with your own username
-    version="0.0.8",
+    version="0.0.9",
     author="bdr99",
     author_email="brandonrothweiler@gmail.com",
     description="An API client for interacting with the MyMazda (Mazda Connected Services) API",
