@@ -95,7 +95,7 @@ None
       "exteriorColorName": "DEEP CRYSTAL BLUE MICA"
    },
    {
-     ... // Other vehicles registered to your account
+      // Other vehicles registered to your account
    }
 ]
 ```
