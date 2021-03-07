@@ -77,7 +77,7 @@ None
 
 ### Return value
 
-```json
+```jsonc
 [
    {
       "vin": "JMXXXXXXXXXXXXXXX",
@@ -112,11 +112,11 @@ Get information about the current status of the vehicle. In my experience, this 
 
 | Parameter | Description |
 | --------- | ----------- |
-| `vehicle_id` | The vehicle ID (obtained from `get_vehicles()`) |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ### Return value
 
-```json
+```jsonc
 {
    "lastUpdatedTimestamp": "20210227145504",
    "latitude": 0.000000,
@@ -168,7 +168,7 @@ Starts the engine. May take some time for the engine to start.
 
 | Parameter | Description |
 | --------- | ----------- |
-| `vehicle_id` | The vehicle ID (obtained from `get_vehicles()`) |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ### Return value
 
@@ -186,7 +186,7 @@ Stops the engine. I believe this only works if the engine was started remotely (
 
 | Parameter | Description |
 | --------- | ----------- |
-| `vehicle_id` | The vehicle ID (obtained from `get_vehicles()`) |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ### Return value
 
@@ -204,7 +204,7 @@ Locks the doors.
 
 | Parameter | Description |
 | --------- | ----------- |
-| `vehicle_id` | The vehicle ID (obtained from `get_vehicles()`) |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ### Return value
 
@@ -222,7 +222,7 @@ Unlocks the doors.
 
 | Parameter | Description |
 | --------- | ----------- |
-| `vehicle_id` | The vehicle ID (obtained from `get_vehicles()`) |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ### Return value
 
@@ -240,7 +240,7 @@ Turns on the vehicle hazard lights.
 
 | Parameter | Description |
 | --------- | ----------- |
-| `vehicle_id` | The vehicle ID (obtained from `get_vehicles()`) |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ### Return value
 
@@ -258,7 +258,7 @@ Turns off the vehicle hazard lights.
 
 | Parameter | Description |
 | --------- | ----------- |
-| `vehicle_id` | The vehicle ID (obtained from `get_vehicles()`) |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ### Return value
 
