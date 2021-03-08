@@ -4,6 +4,8 @@ This is an API client for the MyMazda (Mazda Connected Services) API. This is th
 
 Note: There is no official API, and this library may stop working at any time without warning.
 
+There is also a JavaScript version of this library called [node-mymazda](https://github.com/bdr99/node-mymazda).
+
 # Installation
 
 To install the latest release from [PyPI](https://pypi.org/project/pymazda/), run `pip3 install pymazda`.
