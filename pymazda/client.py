@@ -120,3 +120,6 @@ class Client:
 
     async def stop_engine(self, vehicle_id):
         await self.controller.engine_stop(vehicle_id)
+    
+    async def close(self):
+        await self.controller.close()

@@ -15,6 +15,7 @@ To install the latest release from [PyPI](https://pypi.org/project/pymazda/), ru
 This example initializes the API client and gets a list of vehicles linked to the account. Then, for each vehicle, it gets and outputs the vehicle status and starts the engine.
 
 ```python
+import asyncio
 import pymazda
 
 async def test() -> None:
@@ -35,6 +36,9 @@ async def test() -> None:
 
         # Start engine
         await client.start_engine(vehicle_id)
+    
+    # Close the session
+    await client.close()
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -75,6 +79,7 @@ await client.get_vehicles()
 Gets a list of vehicles linked with the MyMazda account. **Only includes vehicles which are compatible with and enrolled in Mazda Connected Services.**
 
 ### Parameters
+
 None
 
 ### Return value
@@ -261,6 +266,22 @@ Turns off the vehicle hazard lights.
 | Parameter | Description |
 | --------- | ----------- |
 | `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
+
+## Close Session
+
+```python
+await client.close()
+```
+
+This releases the `ClientSession` used by `aiohttp` to make the API requests. You should close the session when you are finished making requests.
+
+### Parameters
+
+None
 
 ### Return value
 

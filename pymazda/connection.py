@@ -308,3 +308,6 @@ class Connection:
         self.logger.debug("Successfully logged in as " + self.email)
         self.access_token = login_response_json["data"]["accessToken"]
         self.access_token_expiration_ts = login_response_json["data"]["accessTokenExpirationTs"]
+    
+    async def close(self):
+        await self._session.close()

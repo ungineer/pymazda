@@ -158,3 +158,6 @@ class Controller:
 
         if response["resultCode"] != "200S00":
             raise MazdaException("Failed to update vehicle nickname")
+    
+    async def close(self):
+        await self.connection.close()
