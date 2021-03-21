@@ -121,5 +121,11 @@ class Client:
     async def stop_engine(self, vehicle_id):
         await self.controller.engine_stop(vehicle_id)
     
+    async def start_charging(self, vehicle_id):
+        await self.controller.charge_start(vehicle_id)
+
+    async def stop_charging(self, vehicle_id):
+        await self.controller.charge_stop(vehicle_id)
+    
     async def close(self):
         await self.controller.close()
