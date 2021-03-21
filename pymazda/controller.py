@@ -1,3 +1,5 @@
+import hashlib
+
 from pymazda.connection import Connection
 from pymazda.exceptions import MazdaException
 
@@ -158,6 +160,33 @@ class Controller:
 
         if response["resultCode"] != "200S00":
             raise MazdaException("Failed to update vehicle nickname")
+    
+    async def send_poi(self, internal_vin, latitude, longitude, name):
+        # Calculate a POI ID that is unique to the name and location
+        poi_id = hashlib.sha256((str(name) + str(latitude) + str(longitude)).encode()).hexdigest()[0:10]
+        
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin,
+            "placemarkinfos": [
+                {
+                    "Altitude": 0,
+                    "Latitude": abs(latitude),
+                    "LatitudeFlag": 0 if (latitude >= 0) else 1,
+                    "Longitude": abs(longitude),
+                    "LongitudeFlag": 0 if (longitude < 0) else 1,
+                    "Name": name,
+                    "OtherInformation": "{}",
+                    "PoiId": poi_id,
+                    "source": "google"
+                }
+            ]
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/sendPOI/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to send POI")
     
     async def close(self):
         await self.connection.close()
