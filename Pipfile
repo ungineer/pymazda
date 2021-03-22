@@ -5,8 +5,8 @@ name = "pypi"
 
 [packages]
 aiohttp = "*"
-pycryptodome = "*"
 idna = "<3"
+cryptography = "*"
 
 [dev-packages]
 twine = "*"

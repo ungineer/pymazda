@@ -1,25 +1,28 @@
 import base64
 import hashlib
-from Crypto.Cipher import AES
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Util.Padding import pad, unpad
+from cryptography.hazmat.primitives import padding, serialization
+from cryptography.hazmat.primitives.asymmetric import padding as asymmetric_padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 def encrypt_aes128cbc_buffer_to_base64_str(data, key, iv):
-    cipher = AES.new(key.encode("ascii"), AES.MODE_CBC, iv.encode("ascii"))
-    return base64.b64encode(cipher.encrypt(pad(data, AES.block_size))).decode("utf-8")
-
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+    cipher = Cipher(algorithms.AES(key.encode("ascii")), modes.CBC(iv.encode("ascii")))
+    encryptor = cipher.encryptor()
+    encrypted = encryptor.update(padded_data) + encryptor.finalize()
+    return base64.b64encode(encrypted).decode("utf-8")
 
 def decrypt_aes128cbc_buffer_to_str(data, key, iv):
-    cipher = AES.new(key.encode("ascii"), AES.MODE_CBC, iv.encode("ascii"))
-    return unpad(cipher.decrypt(data), AES.block_size)
+    cipher = Cipher(algorithms.AES(key.encode("ascii")), modes.CBC(iv.encode("ascii")))
+    decryptor = cipher.decryptor()
+    decrypted = decryptor.update(data) + decryptor.finalize()
+    unpadder = padding.PKCS7(128).unpadder()
+    return unpadder.update(decrypted) + unpadder.finalize()
 
-
-def encrypt_rsaecbpkcs1_padding(data, publicKey):
-    key = RSA.importKey(base64.b64decode(publicKey))
-    cipher = PKCS1_v1_5.new(key)
-    return cipher.encrypt(data.encode("utf-8"))
+def encrypt_rsaecbpkcs1_padding(data, public_key):
+    public_key = serialization.load_der_public_key(base64.b64decode(public_key))
+    return public_key.encrypt(data.encode("utf-8"), asymmetric_padding.PKCS1v15())
 
 def generate_uuid_from_seed(seed):
     hash = hashlib.sha256(seed.encode()).hexdigest().upper()
