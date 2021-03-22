@@ -271,6 +271,42 @@ Turns off the vehicle hazard lights.
 
 None
 
+## Start Charging
+
+```python
+await client.start_charging(vehicle_id)
+```
+
+Starts charging the battery (only for electric vehicles).
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
+
+## Stop Charging
+
+```python
+await client.stop_charging(vehicle_id)
+```
+
+Stops charging the battery (only for electric vehicles).
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
+
 ## Close Session
 
 ```python
