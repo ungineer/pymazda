@@ -271,6 +271,27 @@ Turns off the vehicle hazard lights.
 
 None
 
+## Send POI
+
+```python
+await client.send_poi(vehicle_id, latitude, longitude, poi_name)
+```
+
+Send a GPS location to the vehicle's navigation. Requires a navigation SD card in the vehicle.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+| `latitude` | Latitude of the POI location |
+| `longitude` | Longitude of the POI location|
+| `poi_name` | A friendly name for the location (e.g. "Work") |
+
+### Return value
+
+None
+
 ## Close Session
 
 ```python

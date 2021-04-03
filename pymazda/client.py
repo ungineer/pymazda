@@ -121,5 +121,8 @@ class Client:
     async def stop_engine(self, vehicle_id):
         await self.controller.engine_stop(vehicle_id)
     
+    async def send_poi(self, vehicle_id, latitude, longitude, name):
+        await self.controller.send_poi(vehicle_id, latitude, longitude, name)
+    
     async def close(self):
         await self.controller.close()
