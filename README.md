@@ -277,8 +277,6 @@ None
 await client.send_poi(vehicle_id, latitude, longitude, poi_name)
 ```
 
-Send a GPS location to the vehicle's navigation. Requires a navigation SD card in the vehicle.
-
 ### Parameters
 
 | Parameter | Description |
@@ -291,6 +289,38 @@ Send a GPS location to the vehicle's navigation. Requires a navigation SD card i
 ### Return value
 
 None
+
+## Start Charging
+
+```python
+await client.start_charging(vehicle_id)
+```
+
+Starts charging the battery (only for electric vehicles).
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
+
+## Stop Charging
+
+```python
+await client.stop_charging(vehicle_id)
+```
+
+Stops charging the battery (only for electric vehicles).
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
 
 ## Close Session
 

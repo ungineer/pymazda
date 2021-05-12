@@ -123,6 +123,12 @@ class Client:
     
     async def send_poi(self, vehicle_id, latitude, longitude, name):
         await self.controller.send_poi(vehicle_id, latitude, longitude, name)
+
+    async def start_charging(self, vehicle_id):
+        await self.controller.charge_start(vehicle_id)
+
+    async def stop_charging(self, vehicle_id):
+        await self.controller.charge_stop(vehicle_id)
     
     async def close(self):
         await self.controller.close()

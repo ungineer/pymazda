@@ -187,6 +187,32 @@ class Controller:
 
         if response["resultCode"] != "200S00":
             raise MazdaException("Failed to send POI")
+
+    async def charge_start(self, internal_vin):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/chargeStart/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to start charging")
+
+        return response
+
+    async def charge_stop(self, internal_vin):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/chargeStop/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to stop charging")
+
+        return response
     
     async def close(self):
         await self.connection.close()
