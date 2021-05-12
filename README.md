@@ -277,6 +277,8 @@ None
 await client.send_poi(vehicle_id, latitude, longitude, poi_name)
 ```
 
+Send a GPS location to the vehicle's navigation. Requires a navigation SD card in the vehicle.
+
 ### Parameters
 
 | Parameter | Description |
