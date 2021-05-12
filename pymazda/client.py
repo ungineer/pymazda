@@ -64,7 +64,7 @@ class Client:
             longitude = longitude * (1 if remote_info.get("PositionInfo", {}).get("LongitudeFlag") == 1 else -1)
 
         vehicle_status = {
-            "lastUpdatedTimestamp": remote_info.get("OccurrenceDate"),
+            "lastUpdatedTimestamp": alert_info.get("OccurrenceDate"),
             "latitude": latitude,
             "longitude": longitude,
             "positionTimestamp": remote_info.get("PositionInfo", {}).get("AcquisitionDatetime"),
