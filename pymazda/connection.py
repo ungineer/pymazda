@@ -1,4 +1,5 @@
 import aiohttp
+import asyncio
 import base64
 import hashlib
 import json
@@ -21,7 +22,8 @@ from pymazda.exceptions import (
     MazdaAuthenticationException,
     MazdaAccountLockedException,
     MazdaTokenExpiredException,
-    MazdaLoginFailedException
+    MazdaLoginFailedException,
+    MazdaRequestInProgressException
 )
 
 REGION_CONFIG = {
@@ -177,6 +179,10 @@ class Connection:
             self.logger.debug("Login failed for an unknown reason. Trying again.")
             await self.login()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
+        except (MazdaRequestInProgressException):
+            self.logger.debug("Request failed because another request was already in progress. Waiting 30 seconds and trying again.")
+            await asyncio.sleep(30)
+            return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
 
     async def __send_api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
         timestamp = self.__get_timestamp_str_ms()
@@ -218,15 +224,17 @@ class Connection:
 
         response_json = await response.json()
 
-        if response_json["state"] == "S":
+        if response_json.get("state") == "S":
             if "checkVersion" in uri:
                 return self.__decrypt_payload_using_app_code(response_json["payload"])
             else:
                 return self.__decrypt_payload_using_key(response_json["payload"])
-        elif response_json["errorCode"] == 600001:
+        elif response_json.get("errorCode") == 600001:
             raise MazdaAPIEncryptionException("Server rejected encrypted request")
-        elif response_json["errorCode"] == 600002:
+        elif response_json.get("errorCode") == 600002:
             raise MazdaTokenExpiredException("Token expired")
+        elif response_json.get("errorCode") == 920000 and response_json.get("extraCode") == "400S01":
+            raise MazdaRequestInProgressException("Request already in progress, please wait and try again")
         else:
             raise MazdaException("Request failed for an unknown reason")
 
@@ -295,14 +303,14 @@ class Connection:
 
         login_response_json = await login_response.json()
 
-        if login_response_json["status"] == "INVALID_CREDENTIAL":
+        if login_response_json.get("status") == "INVALID_CREDENTIAL":
             self.logger.debug("Login failed due to invalid email or password")
             raise MazdaAuthenticationException("Invalid email or password")
-        if login_response_json["status"] == "USER_LOCKED":
+        if login_response_json.get("status") == "USER_LOCKED":
             self.logger.debug("Login failed to account being locked")
             raise MazdaAccountLockedException("Account is locked")
-        if login_response_json["status"] != "OK":
-            self.logger.debug("Login failed" + ((": " + login_response_json["status"]) if ("status" in login_response_json) else ""))
+        if login_response_json.get("status") != "OK":
+            self.logger.debug("Login failed" + ((": " + login_response_json.get("status", "")) if ("status" in login_response_json) else ""))
             raise MazdaLoginFailedException("Login failed")
 
         self.logger.debug("Successfully logged in as " + self.email)

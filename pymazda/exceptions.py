@@ -53,3 +53,11 @@ class MazdaLoginFailedException(Exception):
         """Initialize exception"""
         super(MazdaLoginFailedException, self).__init__(status)
         self.status = status
+
+class MazdaRequestInProgressException(Exception):
+    """Raised when a request fails because another request is already in progress"""
+
+    def __init__(self, status):
+        """Initialize exception"""
+        super(MazdaRequestInProgressException, self).__init__(status)
+        self.status = status
