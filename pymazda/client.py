@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from pymazda.controller import Controller
@@ -11,6 +12,8 @@ class Client:
             raise MazdaConfigException("Invalid or missing password")
 
         self.controller = Controller(email, password, region, websession)
+
+        self._cached_state = {}
 
     async def validate_credentials(self):
         await self.controller.login()
@@ -101,7 +104,43 @@ class Client:
             }
         }
 
+        cached_state = self.__get_cached_state(vehicle_id)
+
+        door_lock_status = vehicle_status["doorLocks"]
+
+        cached_state["api_timestamp"] = datetime.datetime.strptime(vehicle_status["lastUpdatedTimestamp"], "%Y%m%d%H%M%S").replace(tzinfo=datetime.timezone.utc)
+        cached_state["api_lock_state"] = not (
+            door_lock_status["driverDoorUnlocked"]
+            or door_lock_status["passengerDoorUnlocked"]
+            or door_lock_status["rearLeftDoorUnlocked"]
+            or door_lock_status["rearRightDoorUnlocked"]
+        )
+
         return vehicle_status
+
+    async def get_assumed_lock_state(self, vehicle_id):
+        cached_state = self.__get_cached_state(vehicle_id)
+
+        if not "assumed_lock_state" in cached_state and not "api_lock_state" in cached_state:
+            return None
+
+        if "assumed_lock_state" in cached_state and not "api_lock_state" in cached_state:
+            return cached_state.get("assumed_lock_state")
+
+        if not "assumed_lock_state" in cached_state and "api_lock_state" in cached_state:
+            return cached_state.get("api_lock_state")
+
+        now_timestamp = datetime.datetime.now(datetime.timezone.utc)
+
+        if (
+            "assumed_lock_state_timestamp" in cached_state
+            and "api_timestamp" in cached_state
+            and cached_state.get("assumed_lock_state_timestamp") > cached_state.get("api_timestamp")
+            and (now_timestamp - cached_state.get("assumed_lock_state_timestamp")) < datetime.timedelta(seconds=300)
+        ):
+            return cached_state.get("assumed_lock_state")
+
+        return cached_state.get("api_lock_state")
 
     async def turn_on_hazard_lights(self, vehicle_id):
         await self.controller.light_on(vehicle_id)
@@ -110,9 +149,19 @@ class Client:
         await self.controller.light_off(vehicle_id)
 
     async def unlock_doors(self, vehicle_id):
+        cached_state = self.__get_cached_state(vehicle_id)
+
+        cached_state["assumed_lock_state"] = False
+        cached_state["assumed_lock_state_timestamp"] = datetime.datetime.now(datetime.timezone.utc)
+
         await self.controller.door_unlock(vehicle_id)
 
     async def lock_doors(self, vehicle_id):
+        cached_state = self.__get_cached_state(vehicle_id)
+
+        cached_state["assumed_lock_state"] = True
+        cached_state["assumed_lock_state_timestamp"] = datetime.datetime.now(datetime.timezone.utc)
+
         await self.controller.door_lock(vehicle_id)
 
     async def start_engine(self, vehicle_id):
@@ -120,7 +169,7 @@ class Client:
 
     async def stop_engine(self, vehicle_id):
         await self.controller.engine_stop(vehicle_id)
-    
+
     async def send_poi(self, vehicle_id, latitude, longitude, name):
         await self.controller.send_poi(vehicle_id, latitude, longitude, name)
 
@@ -129,6 +178,12 @@ class Client:
 
     async def stop_charging(self, vehicle_id):
         await self.controller.charge_stop(vehicle_id)
-    
+
     async def close(self):
         await self.controller.close()
+
+    def __get_cached_state(self, vehicle_id):
+        if not vehicle_id in self._cached_state:
+            self._cached_state[vehicle_id] = {}
+
+        return self._cached_state[vehicle_id]
