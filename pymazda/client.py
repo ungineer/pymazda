@@ -118,7 +118,7 @@ class Client:
 
         return vehicle_status
 
-    async def get_assumed_lock_state(self, vehicle_id):
+    def get_assumed_lock_state(self, vehicle_id):
         cached_state = self.__get_cached_state(vehicle_id)
 
         if not "assumed_lock_state" in cached_state and not "api_lock_state" in cached_state:
