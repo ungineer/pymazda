@@ -235,6 +235,10 @@ class Connection:
             raise MazdaTokenExpiredException("Token expired")
         elif response_json.get("errorCode") == 920000 and response_json.get("extraCode") == "400S01":
             raise MazdaRequestInProgressException("Request already in progress, please wait and try again")
+        elif response_json.get("errorCode") == 920000 and response_json.get("extraCode") == "400S11":
+            raise MazdaException("The engine can only be remotely started 2 consecutive times. Please drive the vehicle to reset the counter.")
+        elif "error" in response_json:
+            raise MazdaException("Request failed: " + response_json["error"])
         else:
             raise MazdaException("Request failed for an unknown reason")
 
