@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
 You will need the email address and password that you use to sign into the MyMazda mobile app. Before using this library, you will need to link your vehicle to your MyMazda account using the app. You will also need the region code for your region. See below for a list of region codes.
 
-When calling these methods, it may take some time for the vehicle to respond accordingly. This is dependent on the quality of the car's connection to the mobile network.
+When calling these methods, it may take some time for the vehicle to respond accordingly. This is dependent on the quality of the car's connection to the mobile network. It is best to avoid making too many API calls in a short time period of time, as this may result in rate limiting.
 
 # API Documentation
 
@@ -64,7 +64,8 @@ client = pymazda.Client(email, password, region, websession)
 | `email`   | The email address you use to log into the MyMazda mobile app |
 | `password` | The password you use to log into the MyMazda mobile app |
 | `region` | The code for the region in which your account was registered<br>Supported regions include:<ul><li>North America (`MNAO`)</li><li>Europe (`MME`)</li><li>Japan (`MJO`)</li></ul> |
-| `websession` | Optional. An instance of `aiohttp.ClientSession` to be used for the API requests. If omitted, the library will instantiate its own instance.
+| `websession` | Optional. An instance of `aiohttp.ClientSession` to be used for the API requests. If omitted, the library will instantiate its own instance. |
+| `use_cached_vehicle_list` | Optional. Set to `True` to enable caching for the `get_vehicles()` call. When `get_vehicles()` is called for the first time, the vehicle list will be fetched from the API and cached in memory. Subsequent calls will return the value from the cache. This may help to avoid rate limiting. |
 
 ### Return value
 

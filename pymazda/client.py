@@ -5,7 +5,7 @@ from pymazda.controller import Controller
 from pymazda.exceptions import MazdaConfigException
 
 class Client:
-    def __init__(self, email, password, region, websession=None):
+    def __init__(self, email, password, region, websession=None, use_cached_vehicle_list=False):
         if email is None or len(email) == 0:
             raise MazdaConfigException("Invalid or missing email address")
         if password is None or len(password) == 0:
@@ -14,11 +14,16 @@ class Client:
         self.controller = Controller(email, password, region, websession)
 
         self._cached_state = {}
+        self._use_cached_vehicle_list = use_cached_vehicle_list
+        self._cached_vehicle_list = None
 
     async def validate_credentials(self):
         await self.controller.login()
-    
+
     async def get_vehicles(self):
+        if self._use_cached_vehicle_list and self._cached_vehicle_list is not None:
+            return self._cached_vehicle_list
+
         vec_base_infos_response = await self.controller.get_vec_base_infos()
 
         vehicles = []
@@ -32,7 +37,7 @@ class Client:
             other_veh_info = json.loads(current_vec_base_info.get("Vehicle").get("vehicleInformation"))
 
             nickname = await self.controller.get_nickname(current_vec_base_info.get("vin"))
-            
+
             vehicle = {
                 "vin": current_vec_base_info.get("vin"),
                 "id": current_vec_base_info.get("Vehicle", {}).get("CvInformation", {}).get("internalVin"),
@@ -51,6 +56,8 @@ class Client:
 
             vehicles.append(vehicle)
 
+        if self._use_cached_vehicle_list:
+            self._cached_vehicle_list = vehicles
         return vehicles
 
     async def get_vehicle_status(self, vehicle_id):
