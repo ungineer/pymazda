@@ -26,6 +26,8 @@ from pymazda.exceptions import (
     MazdaRequestInProgressException
 )
 
+from pymazda.sensordata.sensor_data_builder import SensorDataBuilder
+
 REGION_CONFIG = {
     "MNAO": {
         "app_code": "202007270941270111799",
@@ -57,7 +59,7 @@ MAX_RETRIES = 4
 
 class Connection:
     """Main class for handling MyMazda API connection"""
-    
+
     def __init__(self, email, password, region, websession=None):
         self.email = email
         self.password = password
@@ -79,11 +81,13 @@ class Connection:
         self.access_token = None
         self.access_token_expiration_ts = None
 
+        self.sensor_data_builder = SensorDataBuilder()
+
         if websession is None:
             self._session = aiohttp.ClientSession()
         else:
             self._session = websession
-        
+
         self.logger = logging.getLogger(__name__)
 
     def __get_timestamp_str_ms(self):
@@ -152,7 +156,7 @@ class Connection:
 
     async def api_request(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False):
         return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries=0)
-    
+
     async def __api_request_retry(self, method, uri, query_dict={}, body_dict={}, needs_keys=True, needs_auth=False, num_retries=0):
         if num_retries > MAX_RETRIES:
             raise MazdaException("Request exceeded max number of retries")
@@ -208,7 +212,7 @@ class Connection:
             "app-version": APP_VERSION,
             "app-unique-id": APP_PACKAGE_ID,
             "access-token": (self.access_token if needs_auth else ""),
-            "X-acf-sensor-data": "",
+            "X-acf-sensor-data": self.sensor_data_builder.generate_sensor_data(),
             "req-id": "req_" + timestamp,
             "timestamp": timestamp
         }
@@ -281,7 +285,7 @@ class Connection:
                 "User-Agent": USER_AGENT_USHER_API
             }
         )
-        
+
         encryption_key_response_json = await encryption_key_response.json()
 
         public_key = encryption_key_response_json["data"]["publicKey"]
@@ -320,6 +324,6 @@ class Connection:
         self.logger.debug("Successfully logged in as " + self.email)
         self.access_token = login_response_json["data"]["accessToken"]
         self.access_token_expiration_ts = login_response_json["data"]["accessTokenExpirationTs"]
-    
+
     async def close(self):
         await self._session.close()
