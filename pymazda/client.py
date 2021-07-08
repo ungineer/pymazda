@@ -143,7 +143,7 @@ class Client:
             "assumed_lock_state_timestamp" in cached_state
             and "api_timestamp" in cached_state
             and cached_state.get("assumed_lock_state_timestamp") > cached_state.get("api_timestamp")
-            and (now_timestamp - cached_state.get("assumed_lock_state_timestamp")) < datetime.timedelta(seconds=300)
+            and (now_timestamp - cached_state.get("assumed_lock_state_timestamp")) < datetime.timedelta(seconds=600)
         ):
             return cached_state.get("assumed_lock_state")
 
