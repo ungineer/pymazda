@@ -1,6 +1,8 @@
 import datetime
 import random
 
+from pymazda.sensordata.sensor_data_util import timestamp_to_millis
+
 class BackgroundEvent:
     def __init__(self, type, timestamp):
         self.type = type
@@ -25,7 +27,7 @@ class BackgroundEventList:
         if time_since_sensor_collection_start < 10000:
             return
 
-        paused_timestamp = sensor_collection_start_timestamp + random.randrange(800, 4500)
+        paused_timestamp = timestamp_to_millis(sensor_collection_start_timestamp) + random.randrange(800, 4500)
         resumed_timestamp = paused_timestamp + random.randrange(2000, 5000)
 
         self.background_events.append(BackgroundEvent(2, paused_timestamp))
