@@ -148,8 +148,8 @@ class Client:
             },
             "hvacInfo": {
                 "hvacOn": hvac_info.get("HVAC") == 1,
-                "rearDefrostOn": hvac_info.get("RearDefogger") == 1,
-                "frontDefrostOn": hvac_info.get("FrontDefroster") == 1,
+                "frontDefroster": hvac_info.get("FrontDefroster") == 1,
+                "rearDefroster": hvac_info.get("RearDefogger") == 1,
                 "interiorTemperatureCelsius": hvac_info.get("InCarTeDC")
             }
         }

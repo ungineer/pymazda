@@ -196,8 +196,8 @@ Get additional status information which is specific to electric vehicles. This m
     },
     "hvacInfo": {
         "hvacOn": true,
-        "rearDefrostOn": false,
-        "frontDefrostOn": false,
+        "frontDefroster": false,
+        "rearDefroster": false,
         "interiorTemperatureCelsius": 15.1 // Current interior temperature of the car (actual temperature, not the HVAC setting)
     }
 }
@@ -388,7 +388,7 @@ Get the current settings for the vehicle's HVAC system. Only for electric vehicl
 {
     "temperature": 20, // Current target temperature (NOT the current interior temperature reading)
     "temperatureUnit": "C",
-    "frostDefroster": true,
+    "frontDefroster": true,
     "rearDefroster": false
 }
 ```
