@@ -457,7 +457,7 @@ None
 await client.refresh_vehicle_status(vehicle_id)
 ```
 
-Request a new status update from the vehicle.
+Request a new status update from the vehicle. Only for electric vehicles.
 
 ### Parameters
 
