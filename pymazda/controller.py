@@ -35,6 +35,22 @@ class Controller:
 
         return response
 
+
+    async def get_ev_vehicle_status(self, internal_vin):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin,
+            "limit": 1,
+            "offset": 0,
+            "vecinfotype": "0"
+        }
+        response = await self.connection.api_request("POST", "remoteServices/getEVVehicleStatus/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to get EV vehicle status")
+
+        return response
+
     async def get_health_report(self, internal_vin):
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
@@ -213,6 +229,77 @@ class Controller:
             raise MazdaException("Failed to stop charging")
 
         return response
-    
+
+    async def get_hvac_setting(self, internal_vin):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/getHVACSetting/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to get HVAC setting")
+
+        return response
+
+    async def set_hvac_setting(self, internal_vin, temperature, temperature_unit, front_defroster, rear_defroster):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin,
+            "hvacsettings": {
+                "FrontDefroster": 1 if front_defroster else 0,
+                "RearDefogger": 1 if rear_defroster else 0,
+                "Temperature": temperature,
+                "TemperatureType": 1 if temperature_unit.lower() == "c" else 2
+            }
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/updateHVACSetting/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to set HVAC setting")
+
+        return response
+
+    async def hvac_on(self, internal_vin):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/hvacOn/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to turn HVAC on")
+
+        return response
+
+    async def hvac_off(self, internal_vin):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/hvacOff/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to turn HVAC off")
+
+        return response
+
+    async def refresh_vehicle_status(self, internal_vin):
+        post_body = {
+            "internaluserid": "__INTERNAL_ID__",
+            "internalvin": internal_vin
+        }
+
+        response = await self.connection.api_request("POST", "remoteServices/activeRealTimeVehicleStatus/v4", body_dict=post_body, needs_keys=True, needs_auth=True)
+
+        if response["resultCode"] != "200S00":
+            raise MazdaException("Failed to refresh vehicle status")
+
+        return response
+
     async def close(self):
         await self.connection.close()
