@@ -100,7 +100,8 @@ None
       "interiorColorCode": "BY3",
       "interiorColorName": "BLACK",
       "exteriorColorCode": "42M",
-      "exteriorColorName": "DEEP CRYSTAL BLUE MICA"
+      "exteriorColorName": "DEEP CRYSTAL BLUE MICA",
+      "isElectric": false
    },
    {
       // Other vehicles registered to your account
@@ -161,6 +162,44 @@ Get information about the current status of the vehicle. In my experience, this 
       "rearLeftTirePressurePsi": 33.0,
       "rearRightTirePressurePsi": 33.0
    }
+}
+```
+
+## Get EV vehicle status
+
+```python
+await client.get_ev_vehicle_status(vehicle_id)
+```
+
+Get additional status information which is specific to electric vehicles. This method should only be called for electric vehicles. To determine if the vehicle is electric, use the `isElectric` attribute from the `get_vehicles()` response.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+```jsonc
+{
+    "chargeInfo": {
+        "lastUpdatedTimestamp": "20210807083956",
+        "batteryLevelPercentage": 10,
+        "drivingRangeKm": 218,
+        "pluggedIn": false,
+        "charging": true,
+        "basicChargeTimeMinutes": 3, // Estimated time in minutes to fully charge using AC charging
+        "quickChargeTimeMinutes": 0, // Estimated time in minutes to fully charge using DC charging
+        "batteryHeaterAuto": true, // Current battery heater mode (true = auto, false = off)
+        "batteryHeaterOn": true // Whether the battery heater is currently running
+    },
+    "hvacInfo": {
+        "hvacOn": true,
+        "frontDefroster": false,
+        "rearDefroster": false,
+        "interiorTemperatureCelsius": 15.1 // Current interior temperature of the car (actual temperature, not the HVAC setting)
+    }
 }
 ```
 
@@ -324,6 +363,111 @@ Stops charging the battery (only for electric vehicles).
 | Parameter | Description |
 | --------- | ----------- |
 | `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
+
+## Get HVAC Setting
+
+```python
+await client.get_hvac_setting(vehicle_id)
+```
+
+Get the current settings for the vehicle's HVAC system. Only for electric vehicles.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+```jsonc
+{
+    "temperature": 20, // Current target temperature (NOT the current interior temperature reading)
+    "temperatureUnit": "C",
+    "frontDefroster": true,
+    "rearDefroster": false
+}
+```
+
+## Set HVAC Setting
+
+```python
+await client.set_hvac_setting(vehicle_id)
+```
+
+Set the HVAC settings for the vehicle's HVAC system. Only for electric vehicles.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+| `temperature` | Desired target temperature |
+| `temperature_unit` | Temperature unit - `"F"` or `"C"` |
+| `front_defroster` | Whether to use the front defroster - `True` or `False` |
+| `rear_defroster` | Whether to use the rear defroster - `True` or `False` |
+
+### Return value
+
+None
+
+## Turn On HVAC
+
+```python
+await client.turn_on_hvac(vehicle_id)
+```
+
+Turn on the vehicle's HVAC system. Only for electric vehicles.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
+
+## Turn Off HVAC
+
+```python
+await client.turn_off_hvac(vehicle_id)
+```
+
+Turn off the vehicle's HVAC system. Only for electric vehicles.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
+
+## Refresh Vehicle Status
+
+```python
+await client.refresh_vehicle_status(vehicle_id)
+```
+
+Request a new status update from the vehicle. Only for electric vehicles.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vehicle_id` | Vehicle ID (obtained from `get_vehicles()`) |
+
+### Return value
+
+None
 
 ## Close Session
 

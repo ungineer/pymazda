@@ -51,7 +51,8 @@ class Client:
                 "interiorColorCode": other_veh_info.get("OtherInformation", {}).get("interiorColorCode"),
                 "interiorColorName": other_veh_info.get("OtherInformation", {}).get("interiorColorName"),
                 "exteriorColorCode": other_veh_info.get("OtherInformation", {}).get("exteriorColorCode"),
-                "exteriorColorName": other_veh_info.get("OtherInformation", {}).get("exteriorColorName")
+                "exteriorColorName": other_veh_info.get("OtherInformation", {}).get("exteriorColorName"),
+                "isElectric": current_vec_base_info.get("econnectType", 0) == 1
             }
 
             vehicles.append(vehicle)
@@ -125,6 +126,34 @@ class Client:
 
         return vehicle_status
 
+    async def get_ev_vehicle_status(self, vehicle_id):
+        ev_vehicle_status_response = await self.controller.get_ev_vehicle_status(vehicle_id)
+
+        result_data = ev_vehicle_status_response.get("resultData")[0]
+        vehicle_info = result_data.get("PlusBInformation", {}).get("VehicleInfo", {})
+        charge_info = vehicle_info.get("ChargeInfo", {})
+        hvac_info = vehicle_info.get("RemoteHvacInfo", {})
+
+        return {
+            "chargeInfo": {
+                "lastUpdatedTimestamp": result_data.get("OccurrenceDate"),
+                "batteryLevelPercentage": charge_info.get("SmaphSOC"),
+                "drivingRangeKm": charge_info.get("SmaphRemDrvDistKm"),
+                "pluggedIn": charge_info.get("ChargerConnectorFitting") == 1,
+                "charging": charge_info.get("ChargeStatusSub") == 6,
+                "basicChargeTimeMinutes": charge_info.get("MaxChargeMinuteAC"),
+                "quickChargeTimeMinutes": charge_info.get("MaxChargeMinuteQBC"),
+                "batteryHeaterAuto": charge_info.get("CstmzStatBatHeatAutoSW") == 1,
+                "batteryHeaterOn": charge_info.get("BatteryHeaterON") == 1
+            },
+            "hvacInfo": {
+                "hvacOn": hvac_info.get("HVAC") == 1,
+                "frontDefroster": hvac_info.get("FrontDefroster") == 1,
+                "rearDefroster": hvac_info.get("RearDefogger") == 1,
+                "interiorTemperatureCelsius": hvac_info.get("InCarTeDC")
+            }
+        }
+
     def get_assumed_lock_state(self, vehicle_id):
         cached_state = self.__get_cached_state(vehicle_id)
 
@@ -185,6 +214,30 @@ class Client:
 
     async def stop_charging(self, vehicle_id):
         await self.controller.charge_stop(vehicle_id)
+
+    async def get_hvac_setting(self, vehicle_id):
+        response = await self.controller.get_hvac_setting(vehicle_id)
+
+        hvac_settings = response.get("hvacSettings", {})
+
+        return {
+            "temperature": hvac_settings.get("Temperature"),
+            "temperatureUnit": "C" if hvac_settings.get("TemperatureType") == 1 else "F",
+            "frontDefroster": hvac_settings.get("FrontDefroster") == 1,
+            "rearDefroster": hvac_settings.get("RearDefogger") == 1
+        }
+
+    async def set_hvac_setting(self, vehicle_id, temperature, temperature_unit, front_defroster, rear_defroster):
+        await self.controller.set_hvac_setting(vehicle_id, temperature, temperature_unit, front_defroster, rear_defroster)
+
+    async def turn_on_hvac(self, vehicle_id):
+        await self.controller.hvac_on(vehicle_id)
+
+    async def turn_off_hvac(self, vehicle_id):
+        await self.controller.hvac_off(vehicle_id)
+
+    async def refresh_vehicle_status(self, vehicle_id):
+        await self.controller.refresh_vehicle_status(vehicle_id)
 
     async def close(self):
         await self.controller.close()
