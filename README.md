@@ -396,7 +396,7 @@ Get the current settings for the vehicle's HVAC system. Only for electric vehicl
 ## Set HVAC Setting
 
 ```python
-await client.set_hvac_setting(vehicle_id)
+await client.set_hvac_setting(vehicle_id, temperature, temperature_unit, front_defroster, rear_defroster)
 ```
 
 Set the HVAC settings for the vehicle's HVAC system. Only for electric vehicles.
