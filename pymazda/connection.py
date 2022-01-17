@@ -232,7 +232,9 @@ class Connection:
             if "checkVersion" in uri:
                 return self.__decrypt_payload_using_app_code(response_json["payload"])
             else:
-                return self.__decrypt_payload_using_key(response_json["payload"])
+                decrypted_payload = self.__decrypt_payload_using_key(response_json["payload"])
+                self.logger.debug("Response payload: %s", decrypted_payload)
+                return decrypted_payload
         elif response_json.get("errorCode") == 600001:
             raise MazdaAPIEncryptionException("Server rejected encrypted request")
         elif response_json.get("errorCode") == 600002:
