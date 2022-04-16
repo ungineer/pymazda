@@ -5,13 +5,13 @@ from pymazda.controller import Controller
 from pymazda.exceptions import MazdaConfigException
 
 class Client:
-    def __init__(self, email, password, region, websession=None, use_cached_vehicle_list=False):
+    def __init__(self, email, password, region, websession=None, use_cached_vehicle_list=False, logginglevel=None, logfilename=None):
         if email is None or len(email) == 0:
             raise MazdaConfigException("Invalid or missing email address")
         if password is None or len(password) == 0:
             raise MazdaConfigException("Invalid or missing password")
 
-        self.controller = Controller(email, password, region, websession)
+        self.controller = Controller(email, password, region, websession, logginglevel, logfilename)
 
         self._cached_state = {}
         self._use_cached_vehicle_list = use_cached_vehicle_list

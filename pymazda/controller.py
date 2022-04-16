@@ -4,8 +4,8 @@ from pymazda.connection import Connection
 from pymazda.exceptions import MazdaException
 
 class Controller:
-    def __init__(self, email, password, region, websession=None):
-        self.connection = Connection(email, password, region, websession)
+    def __init__(self, email, password, region, websession=None, logginglevel=None, logfilename=None):
+        self.connection = Connection(email, password, region, websession, logginglevel, logfilename)
 
     async def login(self):
         await self.connection.login()
