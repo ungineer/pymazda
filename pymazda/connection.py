@@ -167,16 +167,16 @@ class Connection:
             await self.__ensure_token_is_valid()
 
         retry_message = (" - attempt #" + str(num_retries + 1)) if (num_retries > 0) else ""
-        self.logger.info(f"Sending {method} request to {uri}{retry_message}")
+        self.debug.info(f"Sending {method} request to {uri}{retry_message}")
 
         try:
             return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
         except (MazdaAPIEncryptionException):
-            self.logger.warning("Server reports request was not encrypted properly. Retrieving new encryption keys.")
+            self.logger.info("Server reports request was not encrypted properly. Retrieving new encryption keys.")
             await self.__retrieve_keys()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
         except (MazdaTokenExpiredException):
-            self.logger.warning("Server reports access token was expired. Retrieving new access token.")
+            self.logger.info("Server reports access token was expired. Retrieving new access token.")
             await self.login()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
         except (MazdaLoginFailedException):
@@ -184,7 +184,7 @@ class Connection:
             await self.login()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
         except (MazdaRequestInProgressException):
-            self.logger.warning("Request failed because another request was already in progress. Waiting 30 seconds and trying again.")
+            self.logger.info("Request failed because another request was already in progress. Waiting 30 seconds and trying again.")
             await asyncio.sleep(30)
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
 
@@ -233,7 +233,7 @@ class Connection:
                 return self.__decrypt_payload_using_app_code(response_json["payload"])
             else:
                 decrypted_payload = self.__decrypt_payload_using_key(response_json["payload"])
-                self.logger.info("Response payload: %s", decrypted_payload)
+                self.logger.debug("Response payload: %s", decrypted_payload)
                 return decrypted_payload
         elif response_json.get("errorCode") == 600001:
             raise MazdaAPIEncryptionException("Server rejected encrypted request")
@@ -256,7 +256,7 @@ class Connection:
         if self.access_token is None or self.access_token_expiration_ts is None:
             self.logger.info("No access token present. Logging in.")
         elif self.access_token_expiration_ts <= time.time():
-            self.logger.warning("Access token is expired. Fetching a new one.")
+            self.logger.info("Access token is expired. Fetching a new one.")
             self.access_token = None
             self.access_token_expiration_ts = None
 
