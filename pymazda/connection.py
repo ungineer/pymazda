@@ -167,24 +167,24 @@ class Connection:
             await self.__ensure_token_is_valid()
 
         retry_message = (" - attempt #" + str(num_retries + 1)) if (num_retries > 0) else ""
-        self.logger.debug(f"Sending {method} request to {uri}{retry_message}")
+        self.debug.info(f"Sending {method} request to {uri}{retry_message}")
 
         try:
             return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
         except (MazdaAPIEncryptionException):
-            self.logger.debug("Server reports request was not encrypted properly. Retrieving new encryption keys.")
+            self.logger.info("Server reports request was not encrypted properly. Retrieving new encryption keys.")
             await self.__retrieve_keys()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
         except (MazdaTokenExpiredException):
-            self.logger.debug("Server reports access token was expired. Retrieving new access token.")
+            self.logger.info("Server reports access token was expired. Retrieving new access token.")
             await self.login()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
         except (MazdaLoginFailedException):
-            self.logger.debug("Login failed for an unknown reason. Trying again.")
+            self.logger.warning("Login failed for an unknown reason. Trying again.")
             await self.login()
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
         except (MazdaRequestInProgressException):
-            self.logger.debug("Request failed because another request was already in progress. Waiting 30 seconds and trying again.")
+            self.logger.info("Request failed because another request was already in progress. Waiting 30 seconds and trying again.")
             await asyncio.sleep(30)
             return await self.__api_request_retry(method, uri, query_dict, body_dict, needs_keys, needs_auth, num_retries + 1)
 
@@ -254,9 +254,9 @@ class Connection:
 
     async def __ensure_token_is_valid(self):
         if self.access_token is None or self.access_token_expiration_ts is None:
-            self.logger.debug("No access token present. Logging in.")
+            self.logger.info("No access token present. Logging in.")
         elif self.access_token_expiration_ts <= time.time():
-            self.logger.debug("Access token is expired. Fetching a new one.")
+            self.logger.info("Access token is expired. Fetching a new one.")
             self.access_token = None
             self.access_token_expiration_ts = None
 
@@ -264,16 +264,16 @@ class Connection:
             await self.login()
 
     async def __retrieve_keys(self):
-        self.logger.debug("Retrieving encryption keys")
+        self.logger.info("Retrieving encryption keys")
         response = await self.api_request("POST", "service/checkVersion", needs_keys=False, needs_auth=False)
-        self.logger.debug("Successfully retrieved encryption keys")
+        self.logger.info("Successfully retrieved encryption keys")
 
         self.enc_key = response["encKey"]
         self.sign_key = response["signKey"]
 
     async def login(self):
-        self.logger.debug("Logging in as " + self.email)
-        self.logger.debug("Retrieving public key to encrypt password")
+        self.logger.info("Logging in as " + self.email)
+        self.logger.info("Retrieving public key to encrypt password")
         encryption_key_response = await self._session.request(
             "GET",
             self.usher_url + "system/encryptionKey",
@@ -294,7 +294,7 @@ class Connection:
         encrypted_password = self.__encrypt_payload_with_public_key(self.password, public_key)
         version_prefix = encryption_key_response_json["data"]["versionPrefix"]
 
-        self.logger.debug("Sending login request")
+        self.logger.info("Sending login request")
         login_response = await self._session.request(
             "POST",
             self.usher_url + "user/login",
@@ -314,16 +314,16 @@ class Connection:
         login_response_json = await login_response.json()
 
         if login_response_json.get("status") == "INVALID_CREDENTIAL":
-            self.logger.debug("Login failed due to invalid email or password")
+            self.logger.error("Login failed due to invalid email or password")
             raise MazdaAuthenticationException("Invalid email or password")
         if login_response_json.get("status") == "USER_LOCKED":
-            self.logger.debug("Login failed to account being locked")
+            self.logger.error("Login failed to account being locked")
             raise MazdaAccountLockedException("Account is locked")
         if login_response_json.get("status") != "OK":
-            self.logger.debug("Login failed" + ((": " + login_response_json.get("status", "")) if ("status" in login_response_json) else ""))
+            self.logger.error("Login failed" + ((": " + login_response_json.get("status", "")) if ("status" in login_response_json) else ""))
             raise MazdaLoginFailedException("Login failed")
 
-        self.logger.debug("Successfully logged in as " + self.email)
+        self.logger.info("Successfully logged in as " + self.email)
         self.access_token = login_response_json["data"]["accessToken"]
         self.access_token_expiration_ts = login_response_json["data"]["accessTokenExpirationTs"]
 
