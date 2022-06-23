@@ -167,7 +167,7 @@ class Connection:
             await self.__ensure_token_is_valid()
 
         retry_message = (" - attempt #" + str(num_retries + 1)) if (num_retries > 0) else ""
-        self.debug.info(f"Sending {method} request to {uri}{retry_message}")
+        self.logger.debug(f"Sending {method} request to {uri}{retry_message}")
 
         try:
             return await self.__send_api_request(method, uri, query_dict, body_dict, needs_keys, needs_auth)
