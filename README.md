@@ -183,8 +183,8 @@ Get additional status information which is specific to electric vehicles. This m
 
 ```jsonc
 {
+    "lastUpdatedTimestamp": "20210807083956",
     "chargeInfo": {
-        "lastUpdatedTimestamp": "20210807083956",
         "batteryLevelPercentage": 10,
         "drivingRangeKm": 218,
         "pluggedIn": false,

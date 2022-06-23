@@ -112,17 +112,15 @@ class Client:
             }
         }
 
-        cached_state = self.__get_cached_state(vehicle_id)
-
         door_lock_status = vehicle_status["doorLocks"]
-
-        cached_state["api_timestamp"] = datetime.datetime.strptime(vehicle_status["lastUpdatedTimestamp"], "%Y%m%d%H%M%S").replace(tzinfo=datetime.timezone.utc)
-        cached_state["api_lock_state"] = not (
+        lock_value = not (
             door_lock_status["driverDoorUnlocked"]
             or door_lock_status["passengerDoorUnlocked"]
             or door_lock_status["rearLeftDoorUnlocked"]
             or door_lock_status["rearRightDoorUnlocked"]
         )
+
+        self.__save_api_value(vehicle_id, "lock_state", lock_value, datetime.datetime.strptime(vehicle_status["lastUpdatedTimestamp"], "%Y%m%d%H%M%S").replace(tzinfo=datetime.timezone.utc))
 
         return vehicle_status
 
@@ -134,9 +132,9 @@ class Client:
         charge_info = vehicle_info.get("ChargeInfo", {})
         hvac_info = vehicle_info.get("RemoteHvacInfo", {})
 
-        return {
+        ev_vehicle_status = {
+            "lastUpdatedTimestamp": result_data.get("OccurrenceDate"),
             "chargeInfo": {
-                "lastUpdatedTimestamp": result_data.get("OccurrenceDate"),
                 "batteryLevelPercentage": charge_info.get("SmaphSOC"),
                 "drivingRangeKm": charge_info.get("SmaphRemDrvDistKm"),
                 "pluggedIn": charge_info.get("ChargerConnectorFitting") == 1,
@@ -154,29 +152,18 @@ class Client:
             }
         }
 
+        self.__save_api_value(vehicle_id, "hvac_mode", ev_vehicle_status["hvacInfo"]["hvacOn"], datetime.datetime.strptime(ev_vehicle_status["lastUpdatedTimestamp"], "%Y%m%d%H%M%S").replace(tzinfo=datetime.timezone.utc))
+
+        return ev_vehicle_status
+
     def get_assumed_lock_state(self, vehicle_id):
-        cached_state = self.__get_cached_state(vehicle_id)
+        return self.__get_assumed_value(vehicle_id, "lock_state", datetime.timedelta(seconds=600))
 
-        if not "assumed_lock_state" in cached_state and not "api_lock_state" in cached_state:
-            return None
+    def get_assumed_hvac_mode(self, vehicle_id):
+        return self.__get_assumed_value(vehicle_id, "hvac_mode", datetime.timedelta(seconds=600))
 
-        if "assumed_lock_state" in cached_state and not "api_lock_state" in cached_state:
-            return cached_state.get("assumed_lock_state")
-
-        if not "assumed_lock_state" in cached_state and "api_lock_state" in cached_state:
-            return cached_state.get("api_lock_state")
-
-        now_timestamp = datetime.datetime.now(datetime.timezone.utc)
-
-        if (
-            "assumed_lock_state_timestamp" in cached_state
-            and "api_timestamp" in cached_state
-            and cached_state.get("assumed_lock_state_timestamp") > cached_state.get("api_timestamp")
-            and (now_timestamp - cached_state.get("assumed_lock_state_timestamp")) < datetime.timedelta(seconds=600)
-        ):
-            return cached_state.get("assumed_lock_state")
-
-        return cached_state.get("api_lock_state")
+    def get_assumed_hvac_setting(self, vehicle_id):
+        return self.__get_assumed_value(vehicle_id, "hvac_setting", datetime.timedelta(seconds=600))
 
     async def turn_on_hazard_lights(self, vehicle_id):
         await self.controller.light_on(vehicle_id)
@@ -185,18 +172,12 @@ class Client:
         await self.controller.light_off(vehicle_id)
 
     async def unlock_doors(self, vehicle_id):
-        cached_state = self.__get_cached_state(vehicle_id)
-
-        cached_state["assumed_lock_state"] = False
-        cached_state["assumed_lock_state_timestamp"] = datetime.datetime.now(datetime.timezone.utc)
+        self.__save_assumed_value(vehicle_id, "lock_state", False)
 
         await self.controller.door_unlock(vehicle_id)
 
     async def lock_doors(self, vehicle_id):
-        cached_state = self.__get_cached_state(vehicle_id)
-
-        cached_state["assumed_lock_state"] = True
-        cached_state["assumed_lock_state_timestamp"] = datetime.datetime.now(datetime.timezone.utc)
+        self.__save_assumed_value(vehicle_id, "lock_state", True)
 
         await self.controller.door_lock(vehicle_id)
 
@@ -218,22 +199,37 @@ class Client:
     async def get_hvac_setting(self, vehicle_id):
         response = await self.controller.get_hvac_setting(vehicle_id)
 
-        hvac_settings = response.get("hvacSettings", {})
+        response_hvac_settings = response.get("hvacSettings", {})
 
-        return {
-            "temperature": hvac_settings.get("Temperature"),
-            "temperatureUnit": "C" if hvac_settings.get("TemperatureType") == 1 else "F",
-            "frontDefroster": hvac_settings.get("FrontDefroster") == 1,
-            "rearDefroster": hvac_settings.get("RearDefogger") == 1
+        hvac_setting = {
+            "temperature": response_hvac_settings.get("Temperature"),
+            "temperatureUnit": "C" if response_hvac_settings.get("TemperatureType") == 1 else "F",
+            "frontDefroster": response_hvac_settings.get("FrontDefroster") == 1,
+            "rearDefroster": response_hvac_settings.get("RearDefogger") == 1
         }
 
+        self.__save_api_value(vehicle_id, "hvac_setting", hvac_setting)
+
+        return hvac_setting
+
     async def set_hvac_setting(self, vehicle_id, temperature, temperature_unit, front_defroster, rear_defroster):
+        self.__save_assumed_value(vehicle_id, "hvac_setting", {
+            "temperature": temperature,
+            "temperatureUnit": temperature_unit,
+            "frontDefroster": front_defroster,
+            "rearDefroster": rear_defroster
+        })
+        
         await self.controller.set_hvac_setting(vehicle_id, temperature, temperature_unit, front_defroster, rear_defroster)
 
     async def turn_on_hvac(self, vehicle_id):
+        self.__save_assumed_value(vehicle_id, "hvac_mode", True)
+
         await self.controller.hvac_on(vehicle_id)
 
     async def turn_off_hvac(self, vehicle_id):
+        self.__save_assumed_value(vehicle_id, "hvac_mode", False)
+
         await self.controller.hvac_off(vehicle_id)
 
     async def refresh_vehicle_status(self, vehicle_id):
@@ -241,6 +237,51 @@ class Client:
 
     async def close(self):
         await self.controller.close()
+
+    def __get_assumed_value(self, vehicle_id, key, assumed_state_validity_duration):
+        cached_state = self.__get_cached_state(vehicle_id)
+
+        assumed_value_key = "assumed_" + key
+        api_value_key = "api_" + key
+        assumed_value_timestamp_key = assumed_value_key + "_timestamp"
+        api_value_timestamp_key = api_value_key + "_timestamp"
+
+        if not assumed_value_key in cached_state and not api_value_key in cached_state:
+            return None
+
+        if assumed_value_key in cached_state and not api_value_key in cached_state:
+            return cached_state.get(assumed_value_key)
+
+        if not assumed_value_key in cached_state and api_value_key in cached_state:
+            return cached_state.get(api_value_key)
+
+        now_timestamp = datetime.datetime.now(datetime.timezone.utc)
+
+        if (
+            assumed_value_timestamp_key in cached_state
+            and api_value_timestamp_key in cached_state
+            and cached_state.get(assumed_value_timestamp_key) > cached_state.get(api_value_timestamp_key)
+            and (now_timestamp - cached_state.get(assumed_value_timestamp_key)) < assumed_state_validity_duration
+        ):
+            return cached_state.get(assumed_value_key)
+
+        return cached_state.get(api_value_key)
+
+    def __save_assumed_value(self, vehicle_id, key, value, timestamp = None):
+        cached_state = self.__get_cached_state(vehicle_id)
+
+        timestamp_value = timestamp if timestamp is not None else datetime.datetime.now(datetime.timezone.utc)
+
+        cached_state["assumed_" + key] = value
+        cached_state["assumed_" + key + "_timestamp"] = timestamp_value
+
+    def __save_api_value(self, vehicle_id, key, value, timestamp = None):
+        cached_state = self.__get_cached_state(vehicle_id)
+
+        timestamp_value = timestamp if timestamp is not None else datetime.datetime.now(datetime.timezone.utc)
+        
+        cached_state["api_" + key] = value
+        cached_state["api_" + key + "_timestamp"] = timestamp_value
 
     def __get_cached_state(self, vehicle_id):
         if not vehicle_id in self._cached_state:
