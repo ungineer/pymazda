@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pymazda"
-version = "0.3.5"
+version = "0.3.6"
 description = "An API client for interacting with the MyMazda (Mazda Connected Services) API"
 authors = ["Brandon Rothweiler <brandonrothweiler@gmail.com>"]
 license = "MIT"
