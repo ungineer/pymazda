@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 import logging
+import ssl
 import time
 from urllib.parse import urlencode
 
@@ -27,6 +28,9 @@ from pymazda.exceptions import (
 )
 
 from pymazda.sensordata.sensor_data_builder import SensorDataBuilder
+
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+ssl_context.set_ciphers("DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK")
 
 REGION_CONFIG = {
     "MNAO": {
@@ -224,7 +228,7 @@ class Connection:
         elif method == "POST":
             headers["sign"] = self.__get_sign_from_payload_and_timestamp(original_body_str, timestamp)
 
-        response = await self._session.request(method, self.base_url + uri, headers=headers, data=encrypted_body_Str)
+        response = await self._session.request(method, self.base_url + uri, headers=headers, data=encrypted_body_Str, ssl=ssl_context)
 
         response_json = await response.json()
 
@@ -285,7 +289,8 @@ class Connection:
             },
             headers={
                 "User-Agent": USER_AGENT_USHER_API
-            }
+            },
+            ssl=ssl_context
         )
 
         encryption_key_response_json = await encryption_key_response.json()
@@ -309,7 +314,9 @@ class Connection:
                 "sdkVersion": USHER_SDK_VERSION,
                 "userId": self.email,
                 "userIdType": "email"
-            })
+            },
+            ssl=ssl_context
+        )
 
         login_response_json = await login_response.json()
 
