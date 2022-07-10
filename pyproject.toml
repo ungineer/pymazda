@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "pymazda"
+version = "0.3.4"
+description = "An API client for interacting with the MyMazda (Mazda Connected Services) API"
+authors = ["Brandon Rothweiler <brandonrothweiler@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/bdr99/pymazda"
+repository = "https://github.com/bdr99/pymazda"
+documentation = "https://github.com/bdr99/pymazda"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+aiohttp = "^3"
+cryptography = "^37"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
