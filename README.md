@@ -6,6 +6,17 @@ Note: There is no official API, and this library may stop working at any time wi
 
 There is also a JavaScript version of this library called [node-mymazda](https://github.com/bdr99/node-mymazda).
 
+# WARNING - TLS Fingerprinting
+As of July 2022, it seems that Mazda has been utilizing a technique known as [TLS fingerprinting](https://stormwall.network/knowledge-base/termin/tls-fingerprinting) to attempt to block automated requests to their API. If you are getting consistent timeout errors when trying to use this library, then this is probably the reason. TLS fingerprinting works by analyzing patterns in the TLS handshake in order to determine whether the request is a legitimate request (such as from the MyMazda iOS/Android mobile app) or an automated request (such as from a Python library like this one). If the Mazda API believes that the request is likely to have originated from an automated system, they will block the request by letting it time out.
+
+Unfortunately, Python does not allow much control over the parameters of the TLS handshake, so it doesn't seem possible to change the requests to prevent them from being blocked. If anyone knows of a way to resolve this, please get in touch! In the meantime, here are a few possible workarounds:
+
+ - Use [`node-mymazda`](https://github.com/bdr99/node-mymazda) (the Node.js version of this library) instead. Requests made from Node.js don't seem to be affected by the issue.
+ - Try running your code in a different envrionment so that the parameters of the TLS handshake will be different. For example, use a different Python version or even a different OS version. Downgrading to Python 3.9 may work around the problem.
+ - Run your code in a Docker container. For example, in my testing, containers built on the `python:3.10-alpine` base image seem to work.
+
+This situation is not ideal, but unfortunately there doesn't seem to be much we can do. Please try the workarounds above for now, and hopefully the situation will improve in the future.
+
 # Installation
 
 To install the latest release from [PyPI](https://pypi.org/project/pymazda/), run `pip3 install pymazda`.
