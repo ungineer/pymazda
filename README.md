@@ -47,7 +47,7 @@ async def main() -> None:
 
         # Start engine
         await client.start_engine(vehicle_id)
-    
+
     # Close the session
     await client.close()
 

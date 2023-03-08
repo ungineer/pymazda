@@ -9,7 +9,7 @@ class Controller:
 
     async def login(self):
         await self.connection.login()
-    
+
     async def get_tac(self):
         return await self.connection.api_request("GET", "content/getTac/v4", needs_keys=True, needs_auth=False)
 
@@ -165,7 +165,7 @@ class Controller:
             raise MazdaException("Invalid VIN")
         if len(new_nickname) > 20:
             raise MazdaException("Nickname is too long")
-        
+
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
             "vin": vin,
@@ -176,11 +176,11 @@ class Controller:
 
         if response["resultCode"] != "200S00":
             raise MazdaException("Failed to update vehicle nickname")
-    
+
     async def send_poi(self, internal_vin, latitude, longitude, name):
         # Calculate a POI ID that is unique to the name and location
         poi_id = hashlib.sha256((str(name) + str(latitude) + str(longitude)).encode()).hexdigest()[0:10]
-        
+
         post_body = {
             "internaluserid": "__INTERNAL_ID__",
             "internalvin": internal_vin,

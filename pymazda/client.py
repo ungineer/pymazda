@@ -219,7 +219,7 @@ class Client:
             "frontDefroster": front_defroster,
             "rearDefroster": rear_defroster
         })
-        
+
         await self.controller.set_hvac_setting(vehicle_id, temperature, temperature_unit, front_defroster, rear_defroster)
 
     async def turn_on_hvac(self, vehicle_id):
@@ -282,7 +282,7 @@ class Client:
         cached_state = self.__get_cached_state(vehicle_id)
 
         timestamp_value = timestamp if timestamp is not None else datetime.datetime.now(datetime.timezone.utc)
-        
+
         cached_state["api_" + key] = value
         cached_state["api_" + key + "_timestamp"] = timestamp_value
 
