@@ -235,6 +235,9 @@ class Client:
     async def refresh_vehicle_status(self, vehicle_id):
         await self.controller.refresh_vehicle_status(vehicle_id)
 
+    async def update_vehicle_nickname(self, vin, new_nickname):
+        await self.controller.update_nickname(vin, new_nickname)
+
     async def close(self):
         await self.controller.close()
 

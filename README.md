@@ -479,6 +479,25 @@ Request a new status update from the vehicle. This is only for electric vehicles
 
 None
 
+## Update Vehicle Nickname
+
+```python
+await client.update_vehicle_nickname(vin, new_nickname)
+```
+
+Set a new nickname for the vehicle. The nickname will appear in the MyMazda app. Maximum length is 20 characters.
+
+### Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| `vin` | VIN (obtained from `get_vehicles()`) |
+| `new_nickname` | The new nickname to assign to the vehicle |
+
+### Return value
+
+None
+
 ## Close Session
 
 ```python
