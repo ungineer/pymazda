@@ -29,7 +29,8 @@ from pymazda.exceptions import (
 
 from pymazda.sensordata.sensor_data_builder import SensorDataBuilder
 
-ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+ssl_context.load_default_certs()
 ssl_context.set_ciphers("DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK")
 
 REGION_CONFIG = {
