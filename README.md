@@ -29,7 +29,7 @@ This example initializes the API client and gets a list of vehicles linked to th
 import asyncio
 import pymazda
 
-async def test() -> None:
+async def main() -> None:
     # Initialize API client (MNAO = North America)
     client = pymazda.Client("myemail", "mypassword", "MNAO")
 
@@ -52,8 +52,7 @@ async def test() -> None:
     await client.close()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(test())
+    asyncio.run(main())
 ```
 
 You will need the email address and password that you use to sign into the MyMazda mobile app. Before using this library, you will need to link your vehicle to your MyMazda account using the app. You will also need the region code for your region. See below for a list of region codes.
